@@ -1,14 +1,17 @@
-const CACHE = 'bookmark-merge-map-v2';
-const CORE = ['/', '/privacy/', '/terms/', '/offline.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/assets/merge-map-640.webp', '/assets/merge-map-960.webp'];
+const CACHE = 'bookmark-merge-map-v3';
+const PAGES = ['/', '/privacy/', '/terms/'];
+const CORE = [...PAGES, '/offline.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/assets/merge-map-640.webp', '/assets/merge-map-960.webp', '/assets/merge-map-1536.webp'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then(async (cache) => {
     await cache.addAll(CORE);
-    const shell = await fetch('/');
-    const html = await shell.clone().text();
-    await cache.put('/', shell);
-    const builtAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((match) => match[1]);
-    await cache.addAll(builtAssets);
+    const builtAssets = new Set();
+    for (const page of PAGES) {
+      const response = await cache.match(page);
+      const html = await response.text();
+      for (const match of html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) builtAssets.add(match[1]);
+    }
+    await cache.addAll([...builtAssets]);
   }).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (event) => {

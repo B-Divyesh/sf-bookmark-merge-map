@@ -211,8 +211,8 @@ function bind(): void {
   document.querySelector('[data-action="more"]')?.addEventListener('click', () => { state.visible += 80; render(); });
   document.querySelector('[data-action="include-all"]')?.addEventListener('click', () => { filteredRows().forEach((row) => { row.included = true; }); void persist(); render(); });
   document.querySelector('[data-action="exclude-all"]')?.addEventListener('click', () => { filteredRows().forEach((row) => { row.included = false; }); void persist(); render(); });
-  document.querySelector('[data-action="export-html"]')?.addEventListener('click', () => { downloadText(`merged-bookmarks-${filenameDate()}.html`, exportBookmarkHtml(state.rows), 'text/html;charset=utf-8'); state.exported = true; showMessage(`Merged HTML exported with ${selectedRows(state.rows).length} distinct destinations.`); });
-  document.querySelector('[data-action="export-csv"]')?.addEventListener('click', () => { downloadText(`bookmark-review-${filenameDate()}.csv`, exportReviewCsv(state.rows), 'text/csv;charset=utf-8'); showMessage('Review CSV exported.'); });
+  document.querySelector('[data-action="export-html"]')?.addEventListener('click', () => { downloadText(`merged-bookmarks-${filenameDate()}.html`, exportBookmarkHtml(state.rows), 'text/html;charset=utf-8'); state.exported = true; window.setTimeout(() => showMessage(`Merged HTML exported with ${selectedRows(state.rows).length} distinct destinations.`), 0); });
+  document.querySelector('[data-action="export-csv"]')?.addEventListener('click', () => { downloadText(`bookmark-review-${filenameDate()}.csv`, exportReviewCsv(state.rows), 'text/csv;charset=utf-8'); window.setTimeout(() => showMessage('Review CSV exported.'), 0); });
   document.querySelector('[data-action="reset"]')?.addEventListener('click', async () => { if (!confirm('Clear both imported maps and every review choice from this browser? Your original files will not be changed.')) return; await clearProject(); state.mapA = undefined; state.mapB = undefined; state.rows = []; state.query = ''; state.filter = 'all'; render(); });
   document.querySelector('[data-action="sample"]')?.addEventListener('click', () => { loadSamples(); });
 }
@@ -246,7 +246,7 @@ window.addEventListener('offline', render);
 if ('serviceWorker' in navigator) {
   const wasControlled = Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.register('/sw.js').then((registration) => {
-    registration.addEventListener('updatefound', () => { state.note = 'An updated offline map is ready. It will apply on the next visit.'; render(); });
+    registration.addEventListener('updatefound', () => { if (wasControlled) { state.note = 'An updated offline map is ready. It will apply on the next visit.'; render(); } });
   }).catch(() => { /* The app remains fully usable without installation support. */ });
   navigator.serviceWorker.addEventListener('message', (event) => { if (event.data?.type === 'SW_READY' && wasControlled) { state.note = 'Offline map updated and ready.'; render(); } });
 }

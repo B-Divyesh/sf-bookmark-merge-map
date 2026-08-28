@@ -6,3 +6,4 @@ graphify-out/
 .DS_Store
 playwright-report/
 test-results/
+.factory/lighthouse.json

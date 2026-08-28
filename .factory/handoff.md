@@ -1,30 +1,30 @@
-# Bookmark Merge Map — verification handoff
+# Bookmark Merge Map — review 1 handoff
 
-## Release status: PASS
+## Release status: FAIL
 
-Candidate **`0130d7c58c44b2e0ec3752521cfb680f716d2aff`** is verified at <https://bookmark-merge-map.sociobot.in/> on 2026-08-28 UTC. The live deployment matches the candidate production build byte-for-byte (20/20 public artifacts). No critical, high, medium, or low defects were found.
+This review added `.factory/review-1.md`; it did not change product code.
 
 ## What was verified
 
-- Clean install, TypeScript check, 15 unit/integration tests, audits, and exact production build all pass.
-- Browser suite passes locally and live: 18/18 on desktop and 390px mobile.
-- Independent live workflow verifies reconciliation, conflicts, selection, exclusion, merged HTML and audit CSV downloads, reload persistence, reversible tracking grouping, invalid-input recovery, rendering boundary, privacy/no outbound bookmark fetches, keyboard focus, reduced motion, and mobile layout.
-- Serious/critical axe findings: 0. Controlled offline reload, worker update simulation, manifest, response headers, caching, strict CSP, and byte identity all pass.
-- Bundle budgets pass: 24.40 KB JS raw, 16.11 KB CSS raw, 60,854-byte mobile hero. Fresh Lighthouse: mobile 100/100/100/100; desktop 96/100/100/100.
+- Cold live-site visits in separate desktop and 390px browser contexts.
+- The live `?demo=1` path, sample flow, IndexedDB persistence, privacy request log, links, metadata, routes, and prior verification findings.
+- `npm ci`, `npm test` (15/15 pass), and `npm run build` (passes and produces `dist/`).
+- The live Playwright suite: 17/18 passed; its clean-context offline-control test failed, so the suite does not meet its required gate.
 
-## How to verify again
+## Blocking gaps
+
+- The sample flow is not isolated: it uses the real IndexedDB key and overwrites the recoverable real project; `?demo=1` is empty and lacks the required demo banner/reset/start-real controls.
+- The hero is metaphorical and hides the sample path rather than naming the job, audience, and first action.
+- `.factory/claims.json` and `.factory/demo.md` are missing; visitor-facing claims therefore have no tagged sandbox tests.
+- `/demo` and unknown routes are root-app fallbacks rather than real demo/404 routes, and required route metadata/shell pieces are missing.
+
+## How to verify after repair
 
 ```bash
 npm ci
-npm run typecheck
 npm test
 npm run build
-npm run test:e2e
 PLAYWRIGHT_BASE_URL=https://bookmark-merge-map.sociobot.in npm run test:e2e
 ```
 
-See `.factory/verification-4.md` for exact evidence, hashes, commands, coverage, and response-policy results.
-
-## Known gaps / next steps
-
-None found for this candidate. This is a static local-first PWA; package-consumer, backend concurrency, health, and server-persistence checks are not applicable.
+Then follow every scenario and claim checklist in `.factory/review-1.md`, especially the real-data → demo → reset/start-real storage-isolation check.

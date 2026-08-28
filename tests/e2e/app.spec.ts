@@ -35,7 +35,7 @@ test('service worker uses a versioned release cache and accepts an update check'
     };
   });
   expect(worker.active).toContain('/sw.js');
-  expect(worker.caches).toContain('bookmark-merge-map-v5');
+  expect(worker.caches).toContain('bookmark-merge-map-v6');
 });
 test('offline fallback remains styled with the production CSP', async ({ page }) => {
   const errors: string[] = [];
@@ -96,6 +96,56 @@ test('excluded review rows retain accessible contrast after keyboard bulk exclus
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact || ''))).toEqual([]);
+});
+test('tracking grouping preserves reviewed choices and unrelated exclusions across reload and toggles', async ({ page }) => {
+  const bookmarkExport = (folder: string, links: string) => `<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><H3>${folder}</H3><DL><p>${links}</DL><p></DL><p>`;
+  await page.goto('/');
+  await page.locator('#file-a').setInputFiles({
+    name: 'desktop.html', mimeType: 'text/html',
+    buffer: Buffer.from(bookmarkExport('Research / Maps & field', '<DT><A HREF="https://example.com/guide">Desktop guide</A><DT><A HREF="https://desktop.example/only">Desktop only</A>'))
+  });
+  await page.locator('#file-b').setInputFiles({
+    name: 'mobile.html', mimeType: 'text/html',
+    buffer: Buffer.from(bookmarkExport('Saved on phone', '<DT><A HREF="https://example.com/guide?utm_source=mobile">Mobile guide</A>'))
+  });
+  await page.getByRole('button', { name: /Compare 2 \+ 1 bookmarks/ }).click();
+
+  let guide = page.locator('.result-row').filter({ hasText: 'Desktop guide' });
+  await guide.getByLabel('Export title').selectOption({ label: 'Mobile guide' });
+  guide = page.locator('.result-row').filter({ hasText: 'Mobile guide' });
+  await guide.getByLabel('Destination').selectOption({ label: 'Saved on phone' });
+  await page.getByRole('checkbox', { name: 'Include Desktop only' }).uncheck();
+  await expect(page.getByText('1 distinct route excluded by you')).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByText('Recovered your last working map from this browser.')).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: 'Include Desktop only' })).not.toBeChecked();
+  guide = page.locator('.result-row').filter({ hasText: 'Mobile guide' });
+  await expect(guide.getByLabel('Export title')).toHaveValue('Mobile guide');
+  await expect(guide.getByLabel('Destination')).toHaveValue('Saved on phone');
+
+  const tracking = page.getByRole('checkbox', { name: /Group common tracking variants/ });
+  await tracking.uncheck();
+  await expect(page.locator('.proof-strip > div').nth(1).locator('strong')).toHaveText('3');
+  await expect(page.getByRole('checkbox', { name: 'Include Desktop only' })).not.toBeChecked();
+  await expect(page.getByText(/Choices were kept for unchanged routes/)).toBeVisible();
+
+  await tracking.check();
+  await expect(page.getByRole('checkbox', { name: 'Include Desktop only' })).not.toBeChecked();
+  guide = page.locator('.result-row').filter({ hasText: 'Mobile guide' });
+  await expect(guide.getByLabel('Export title')).toHaveValue('Mobile guide');
+  await expect(guide.getByLabel('Destination')).toHaveValue('Saved on phone');
+  await expect(page.getByText('1 distinct route excluded by you')).toBeVisible();
+});
+test('result URL links provide a 44px minimum pointer target', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Use sample maps' }).click();
+  const sizes = await page.locator('.result-row a.url').evaluateAll((links) => links.map((link) => {
+    const box = link.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  }));
+  expect(sizes.length).toBeGreaterThan(0);
+  expect(sizes.every(({ width, height }) => width >= 44 && height >= 44)).toBe(true);
 });
 test('keeps the release shell private, responsive, focused, and reduced-motion safe', async ({ page }) => {
   const errors: string[] = [];

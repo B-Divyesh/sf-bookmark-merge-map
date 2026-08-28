@@ -18,7 +18,8 @@ const state: {
   note: string;
   restoring: boolean;
   exported: boolean;
-} = { rows: [], stripTracking: true, filter: 'all', query: '', visible: 80, error: '', note: '', restoring: true, exported: false };
+  decisions: NonNullable<SavedProject['decisions']>;
+} = { rows: [], stripTracking: true, filter: 'all', query: '', visible: 80, error: '', note: '', restoring: true, exported: false, decisions: {} };
 
 function escapeHtml(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -31,6 +32,11 @@ function uniqueValues<T>(items: T[], key: (item: T) => string): T[] {
   return items.filter((item) => { const value = key(item); if (seen.has(value)) return false; seen.add(value); return true; });
 }
 
+function decisionKey(row: MergeRow): string {
+  const members = row.items.map((item) => `${item.source}:${item.id}`).sort().join(',');
+  return `v2\u0000${row.id}\u0000${members}`;
+}
+
 function counts() {
   const occurrences = (state.mapA?.bookmarks.length || 0) + (state.mapB?.bookmarks.length || 0);
   const included = selectedRows(state.rows).length;
@@ -39,7 +45,11 @@ function counts() {
 }
 
 function currentDecisions(): SavedProject['decisions'] {
-  return Object.fromEntries(state.rows.map((row) => [row.id, { included: row.included, title: row.title, folder: row.folder }]));
+  state.decisions = {
+    ...state.decisions,
+    ...Object.fromEntries(state.rows.map((row) => [decisionKey(row), { included: row.included, title: row.title, folder: [...row.folder] }]))
+  };
+  return state.decisions;
 }
 
 async function persist(): Promise<void> {
@@ -53,11 +63,14 @@ async function persist(): Promise<void> {
   try { await saveProject(project); } catch { state.note = 'This browser could not save the working map. Exports still work.'; }
 }
 
-function calculate(decisions?: SavedProject['decisions']): void {
+function calculate(decisions = state.decisions): void {
   if (!state.mapA || !state.mapB) { state.rows = []; return; }
   state.rows = reconcile(state.mapA.bookmarks, state.mapB.bookmarks);
   if (decisions) state.rows.forEach((row) => {
-    const saved = decisions[row.id];
+    // Including row membership distinguishes a grouped route from one exact
+    // variant while preserving decisions for rows unchanged by the setting.
+    // The plain ID keeps saved v1 projects compatible.
+    const saved = decisions[decisionKey(row)] || decisions[row.id];
     if (!saved) return;
     row.included = saved.included;
     if (row.items.some((item) => item.title === saved.title)) row.title = saved.title;
@@ -177,6 +190,7 @@ async function readFile(source: SourceId, file: File): Promise<void> {
     const map = parseBookmarkHtml(html, source, state.stripTracking, file.name);
     if (source === 'a') state.mapA = map; else state.mapB = map;
     state.rows = [];
+    state.decisions = {};
     await persist();
     showMessage(`${file.name}: ${map.bookmarks.length.toLocaleString()} bookmarks mapped.`);
   } catch (error) { showMessage(error instanceof Error ? error.message : 'This file could not be read.', true); }
@@ -195,11 +209,15 @@ function bind(): void {
   });
   document.querySelectorAll<HTMLButtonElement>('[data-replace]').forEach((button) => button.addEventListener('click', () => document.querySelector<HTMLInputElement>(`#file-${button.dataset.replace}`)?.click()));
   document.querySelector<HTMLInputElement>('#tracking')?.addEventListener('change', (event) => {
+    const hadResults = state.rows.length > 0;
+    currentDecisions();
     state.stripTracking = (event.currentTarget as HTMLInputElement).checked;
     if (state.mapA) state.mapA = reparseMap(state.mapA, 'a', state.stripTracking);
     if (state.mapB) state.mapB = reparseMap(state.mapB, 'b', state.stripTracking);
-    if (state.rows.length) calculate();
-    void persist(); render();
+    if (hadResults) calculate();
+    void persist();
+    if (hadResults) showMessage('Grouping changed. Choices were kept for unchanged routes; review newly grouped or split routes.');
+    else render();
   });
   document.querySelector('[data-action="compare"]')?.addEventListener('click', () => { calculate(); void persist(); render(); document.querySelector('#survey-title')?.scrollIntoView({ behavior: 'smooth' }); });
   document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((button) => button.addEventListener('click', () => { state.filter = button.dataset.filter as typeof state.filter; state.visible = 80; render(); }));
@@ -215,7 +233,7 @@ function bind(): void {
   document.querySelector('[data-action="exclude-all"]')?.addEventListener('click', () => { filteredRows().forEach((row) => { row.included = false; }); void persist(); render(); });
   document.querySelector('[data-action="export-html"]')?.addEventListener('click', () => { downloadText(`merged-bookmarks-${filenameDate()}.html`, exportBookmarkHtml(state.rows), 'text/html;charset=utf-8'); state.exported = true; window.setTimeout(() => showMessage(`Merged HTML exported with ${selectedRows(state.rows).length} distinct destinations.`), 0); });
   document.querySelector('[data-action="export-csv"]')?.addEventListener('click', () => { downloadText(`bookmark-review-${filenameDate()}.csv`, exportReviewCsv(state.rows), 'text/csv;charset=utf-8'); window.setTimeout(() => showMessage('Review CSV exported.'), 0); });
-  document.querySelector('[data-action="reset"]')?.addEventListener('click', async () => { if (!confirm('Clear both imported maps and every review choice from this browser? Your original files will not be changed.')) return; await clearProject(); state.mapA = undefined; state.mapB = undefined; state.rows = []; state.query = ''; state.filter = 'all'; render(); });
+  document.querySelector('[data-action="reset"]')?.addEventListener('click', async () => { if (!confirm('Clear both imported maps and every review choice from this browser? Your original files will not be changed.')) return; await clearProject(); state.mapA = undefined; state.mapB = undefined; state.rows = []; state.decisions = {}; state.query = ''; state.filter = 'all'; render(); });
   document.querySelector('[data-action="sample"]')?.addEventListener('click', () => { loadSamples(); });
 }
 
@@ -223,6 +241,7 @@ const sampleA = `<!DOCTYPE NETSCAPE-Bookmark-file-1><TITLE>Desktop</TITLE><H1>De
 const sampleB = `<!DOCTYPE NETSCAPE-Bookmark-file-1><TITLE>Mobile</TITLE><H1>Mobile</H1><DL><p><DT><H3>Saved on phone</H3><DL><p><DT><A HREF="https://example.com/guide?utm_source=mobile">Trail guide</A><DT><A HREF="https://developer.mozilla.org/en-US/docs/Web/API#interfaces">MDN Web APIs</A><DT><A HREF="https://example.net/archive">Reading archive</A><DT><A HREF="https://web.dev/learn/pwa/">Learn PWA</A></DL><p></DL><p>`;
 
 function loadSamples(): void {
+  state.decisions = {};
   state.mapA = parseBookmarkHtml(sampleA, 'a', state.stripTracking, 'desktop-sample.html');
   state.mapB = parseBookmarkHtml(sampleB, 'b', state.stripTracking, 'mobile-sample.html');
   calculate(); void persist(); render(); document.querySelector('#survey-title')?.scrollIntoView({ behavior: 'smooth' });
@@ -233,9 +252,10 @@ async function restore(): Promise<void> {
     const saved = await loadProject();
     if (saved) {
       state.stripTracking = saved.stripTracking;
+      state.decisions = saved.decisions || {};
       if (saved.mapA) state.mapA = parseBookmarkHtml(saved.mapA.html, 'a', saved.stripTracking, saved.mapA.name);
       if (saved.mapB) state.mapB = parseBookmarkHtml(saved.mapB.html, 'b', saved.stripTracking, saved.mapB.name);
-      if (state.mapA && state.mapB) calculate(saved.decisions);
+      if (state.mapA && state.mapB) calculate();
       state.note = 'Recovered your last working map from this browser.';
     }
   } catch { state.error = 'The saved map could not be restored. Import the original exports again.'; }

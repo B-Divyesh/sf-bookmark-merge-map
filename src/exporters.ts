@@ -39,7 +39,11 @@ export function exportBookmarkHtml(rows: MergeRow[]): string {
 
 function csv(value: string | number | boolean): string {
   const text = String(value);
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  // Spreadsheet applications can execute formula-like bookmark metadata even
+  // when a CSV field is quoted. A leading apostrophe keeps the original value
+  // readable while forcing the cell to remain text.
+  const safeText = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  return /[",\r\n]/.test(safeText) ? `"${safeText.replace(/"/g, '""')}"` : safeText;
 }
 
 export function exportReviewCsv(rows: MergeRow[]): string {

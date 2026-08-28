@@ -47,4 +47,8 @@ describe('production response policy', () => {
     expect(offlineHtml).not.toContain('<style');
     expect(serviceWorker).toContain("'/offline.css'");
   });
+
+  it('advances the offline cache for this repaired release', () => {
+    expect(serviceWorker).toContain("const CACHE = 'bookmark-merge-map-v6'");
+  });
 });

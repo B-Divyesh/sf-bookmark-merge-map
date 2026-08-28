@@ -52,6 +52,15 @@ test('@claim:demo-isolation demo changes never alter the real project', async ({
   expect(await databaseRecord(page, 'demo:bookmark-merge-map')).toBeNull();
 });
 
+test('?demo=1 opens the isolated sample result and its controls directly', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page).toHaveTitle('Demo — Bookmark Merge Map');
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset demo' }).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Start for real' })).toBeVisible();
+  await expect(page.locator('.result-row')).toHaveCount(5);
+});
+
 test('@claim:privacy-local demo flow sends requests only to this site', async ({ page }) => {
   const origins = new Set<string>();
   page.on('request', (request) => origins.add(new URL(request.url()).origin));

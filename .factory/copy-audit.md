@@ -60,7 +60,7 @@ Audited 2026-08-28. Counts treat contractions and hyphenated terms as one word. 
 
 ## README prose
 
-All 31 README sentences are at or below 18 words. No banned term appears. Product claims map to `.factory/claims.json`; build and deployment instructions describe repository operations.
+All 32 README sentences are at or below 18 words. No banned term appears. Product claims map to `.factory/claims.json`; build and deployment instructions describe repository operations.
 
 ## Terminology
 

@@ -1,0 +1,93 @@
+[
+  {
+    "id": "demo-isolation",
+    "claim": "Demo sample data never changes a real project.",
+    "where": "demo banner, privacy page, README",
+    "test": "npm run test:e2e -- --grep @claim:demo-isolation --project=chromium",
+    "sandbox": "fresh browser context; import named real files; snapshot real IndexedDB; change demo; return to real; compare records byte for byte"
+  },
+  {
+    "id": "privacy-local",
+    "claim": "Files stay in your browser and bookmark contents are not sent to an API.",
+    "where": "landing facts, import note, privacy page, README",
+    "test": "npm run test:e2e -- --grep @claim:privacy-local --project=chromium",
+    "sandbox": "fresh browser context; record every request through sample filtering and both downloads; assert only the app origin"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after first visit.",
+    "where": "landing facts, README",
+    "test": "npm run test:e2e -- --grep @claim:offline-reload --project=chromium",
+    "sandbox": "fresh browser context; open /demo online; wait for service worker control; set context offline; reload and assert the sample result"
+  },
+  {
+    "id": "free-no-account",
+    "claim": "Free with no account.",
+    "where": "landing facts, README",
+    "test": "npm run test:e2e -- --grep @claim:free-no-account --project=chromium",
+    "sandbox": "fresh browser context; complete the sample workflow without login, payment UI, or an external request"
+  },
+  {
+    "id": "html-export",
+    "claim": "Downloads merged bookmark HTML with one entry per selected result.",
+    "where": "download panel, README",
+    "test": "npm run test:e2e -- --grep @claim:html-export --project=chromium",
+    "sandbox": "fresh /demo; download HTML; assert Netscape header and five selected bookmark entries"
+  },
+  {
+    "id": "csv-export",
+    "claim": "Downloads a review CSV with every sample result.",
+    "where": "download panel, README",
+    "test": "npm run test:e2e -- --grep @claim:csv-export --project=chromium",
+    "sandbox": "fresh /demo; download CSV; assert exact header and one row per result"
+  },
+  {
+    "id": "input-recovery",
+    "claim": "Unsupported input explains which file to choose next.",
+    "where": "file error state",
+    "test": "npm run test:e2e -- --grep @claim:input-recovery --project=chromium",
+    "sandbox": "fresh root; select text input; assert actionable error; select valid HTML and assert recovery"
+  },
+  {
+    "id": "new-file-exports",
+    "claim": "Downloads create new files and keep source URLs unchanged.",
+    "where": "download panel, terms, README",
+    "test": "npm run test:e2e -- --grep @claim:new-file-exports --project=chromium",
+    "sandbox": "fresh /demo; snapshot demo source record; download HTML; assert original campaign URL and unchanged source record"
+  },
+  {
+    "id": "tracking-grouping",
+    "claim": "Known campaign tags can be ignored for matching without changing downloaded URLs.",
+    "where": "tracking control, README",
+    "test": "npm run test:e2e -- --grep @claim:tracking-grouping --project=chromium",
+    "sandbox": "fresh /demo; assert five grouped results, six ungrouped results, then regroup and inspect downloaded original URL"
+  },
+  {
+    "id": "project-recovery",
+    "claim": "Real projects are saved in this browser for recovery.",
+    "where": "import note, privacy page, README",
+    "test": "npm run test:e2e -- --grep @claim:project-recovery --project=chromium",
+    "sandbox": "fresh root; import two files; compare; exclude one result; reload; assert files and choice are restored"
+  },
+  {
+    "id": "bookmark-reading",
+    "claim": "Reads folder paths, titles, and URLs from both bookmark exports.",
+    "where": "How merging works",
+    "test": "npm run test:e2e -- --grep @claim:bookmark-reading --project=chromium",
+    "sandbox": "fresh /demo; assert titles, full URLs, and different source folders from both sample exports"
+  },
+  {
+    "id": "default-inclusion",
+    "claim": "Every distinct destination, including one-sided links and title conflicts, starts selected.",
+    "where": "review introduction, How merging works",
+    "test": "npm run test:e2e -- --grep @claim:default-inclusion --project=chromium",
+    "sandbox": "fresh /demo; assert all five result checkboxes selected, two conflicts, and one phone-only result"
+  },
+  {
+    "id": "no-live-pages",
+    "claim": "Comparison does not open bookmark pages or update bookmarks already in the browser.",
+    "where": "What this does not do",
+    "test": "npm run test:e2e -- --grep @claim:no-live-pages --project=chromium",
+    "sandbox": "fresh /demo; log requests; filter results; assert same-origin only, unchanged demo source record, and no browser bookmarks API"
+  }
+]

@@ -1,8 +1,8 @@
 {
   "name": "Bookmark Merge Map",
   "short_name": "Merge Map",
-  "description": "Compare and safely merge two bookmark exports offline.",
-  "start_url": "/?source=installed-v1",
+  "description": "Compare two bookmark exports and download one reviewed merge.",
+  "start_url": "/?source=installed-v2",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F4F0E6",

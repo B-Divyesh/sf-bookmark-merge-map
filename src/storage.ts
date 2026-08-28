@@ -1,19 +1,23 @@
 import type { SavedProject } from './types';
 
-const DB_NAME = 'bookmark-merge-map';
 const STORE = 'projects';
+export type StorageSpace = 'real' | 'demo';
 
-function open(): Promise<IDBDatabase> {
+export function databaseName(space: StorageSpace): string {
+  return space === 'demo' ? 'demo:bookmark-merge-map' : 'bookmark-merge-map';
+}
+
+function open(space: StorageSpace): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(databaseName(space), 1);
     request.onupgradeneeded = () => request.result.createObjectStore(STORE);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 }
 
-export async function saveProject(project: SavedProject): Promise<void> {
-  const db = await open();
+export async function saveProject(project: SavedProject, space: StorageSpace = 'real'): Promise<void> {
+  const db = await open(space);
   await new Promise<void>((resolve, reject) => {
     const transaction = db.transaction(STORE, 'readwrite');
     transaction.objectStore(STORE).put(project, 'active');
@@ -23,8 +27,8 @@ export async function saveProject(project: SavedProject): Promise<void> {
   db.close();
 }
 
-export async function loadProject(): Promise<SavedProject | undefined> {
-  const db = await open();
+export async function loadProject(space: StorageSpace = 'real'): Promise<SavedProject | undefined> {
+  const db = await open(space);
   const result = await new Promise<SavedProject | undefined>((resolve, reject) => {
     const request = db.transaction(STORE).objectStore(STORE).get('active');
     request.onsuccess = () => resolve(request.result);
@@ -34,8 +38,8 @@ export async function loadProject(): Promise<SavedProject | undefined> {
   return result;
 }
 
-export async function clearProject(): Promise<void> {
-  const db = await open();
+export async function clearProject(space: StorageSpace = 'real'): Promise<void> {
+  const db = await open(space);
   await new Promise<void>((resolve, reject) => {
     const transaction = db.transaction(STORE, 'readwrite');
     transaction.objectStore(STORE).delete('active');

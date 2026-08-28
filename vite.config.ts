@@ -5,12 +5,6 @@ export default defineConfig({
     target: 'es2022',
     outDir: 'dist',
     sourcemap: true,
-    rollupOptions: {
-      input: {
-        main: 'index.html',
-        privacy: 'privacy/index.html',
-        terms: 'terms/index.html'
-      }
-    }
+    rollupOptions: { input: { main: 'index.html', notFound: '404.html' } }
   }
 });

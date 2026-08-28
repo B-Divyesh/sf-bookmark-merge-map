@@ -4,12 +4,14 @@ import { describe, expect, it } from 'vitest';
 interface RouteConfig {
   route: string;
   headers?: Record<string, string>;
+  rewrite?: string;
 }
 
 interface StaticWebAppConfig {
   globalHeaders: Record<string, string>;
   mimeTypes: Record<string, string>;
   routes: RouteConfig[];
+  responseOverrides: Record<string, { rewrite: string }>;
 }
 
 const config = JSON.parse(readFileSync('public/staticwebapp.config.json', 'utf8')) as StaticWebAppConfig;
@@ -49,6 +51,11 @@ describe('production response policy', () => {
   });
 
   it('advances the offline cache for this repaired release', () => {
-    expect(serviceWorker).toContain("const CACHE = 'bookmark-merge-map-v6'");
+    expect(serviceWorker).toContain("const CACHE = 'bookmark-merge-map-v7'");
+  });
+
+  it('rewrites every real route and uses a designed 404 response', () => {
+    for (const path of ['/demo', '/privacy', '/terms']) expect(config.routes.find((item) => item.route === path)?.rewrite).toBe('/index.html');
+    expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html' });
   });
 });

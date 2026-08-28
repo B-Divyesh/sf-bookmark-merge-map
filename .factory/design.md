@@ -47,4 +47,8 @@ State changes use 180–240ms opacity and short vertical translations, like layi
 
 Subject: an abstract topographic paper map where two separately surveyed trail networks converge safely into a single coherent route. World: archival field cartography, no real place. Materials: embossed recycled paper, graphite contour ink, tiny punched registration holes, a single painted vermilion trail, forest-green elevation bands. Light: soft raking daylight from upper left. Lens: straight overhead, flat lay. Palette words: warm map paper, deep forest ink, muted sage, vermilion survey paint, small ochre markers. Negative list: no words, no labels, no letters, no numbers, no logos, no watermark, no UI, no people, no recognizable country, no neon, no glossy 3D plastic, no generic gradient.
 
-Generation: Azure AI Foundry `factory-image` through `/opt/fleet/lib/gen-image.sh`, 2026-08-28. Generated assets are original to this product. Production derivatives are optimized locally to WebP/AVIF.
+Generation: Azure AI Foundry `factory-image` through `/opt/fleet/lib/gen-image.sh`, 2026-08-28. Generated assets are original to this product. Production hero derivatives are optimized locally as responsive WebP files.
+
+## Polish 1 asset note
+
+The topographic direction, palette, type pairing, shape language, and motion policy remain unchanged. Polish 1 uses the existing generated map as a 1200×630 social-card crop and derives the 180px touch icon from the existing original icon. No new third-party asset was introduced.

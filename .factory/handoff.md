@@ -2,7 +2,7 @@
 
 ## Release status
 
-**FAIL** for candidate `f22708ff55f7b6e50e0d6d05fe28b5c1bf6ef8ed` at https://bookmark-merge-map.sociobot.in/, verified independently on 2026-08-28 UTC.
+**FAIL** for candidate `f22708ff55f7b6e50e0d6d05fe28b5c1bf6ef8ed` at https://bookmark-merge-map.sociobot.in/, freshly reverified independently on 2026-08-28 at 03:59 UTC.
 
 The live deployment matches the candidate build byte for byte, and the core merge workflow, exports, local persistence, controlled offline reload, accessibility, privacy, caching, and performance checks pass. Release acceptance is blocked by one medium-severity deployment-policy defect: the global `style-src 'self'` CSP blocks the inline stylesheet in `/offline.html`, generating a console error and leaving the explicit offline fallback unstyled.
 
@@ -21,7 +21,7 @@ Full evidence and reproduction are in `.factory/verification-2.md`.
 - Main-route console/page errors: zero. `/privacy/` and `/terms/`: zero. `/offline.html`: one CSP console error — blocking defect.
 - Privacy capture: same-origin requests only; no bookmark-page fetch, telemetry, third-party script/font, API, or cookie observed.
 - Live identity: 14/14 checked artifacts matched clean local `dist/` SHA-256 values.
-- Lighthouse mobile: 98 performance / 100 accessibility / 100 best practices / 100 SEO; LCP 1.4s, TBT 160ms, CLS 0.
+- Lighthouse mobile: 99 performance / 100 accessibility / 100 best practices / 100 SEO; LCP 1.4s, TBT 130ms, CLS 0.
 - Lighthouse desktop: 100/100/100/100; LCP 0.4s, TBT 0ms, CLS 0.
 - Bundle budgets: 23.99 KB JS, 16.05 KB CSS, 60.85 KB mobile hero; all pass.
 

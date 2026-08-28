@@ -2,7 +2,7 @@
 
 **Candidate:** `f22708ff55f7b6e50e0d6d05fe28b5c1bf6ef8ed`  
 **Live URL:** https://bookmark-merge-map.sociobot.in/  
-**Verified:** 2026-08-28 UTC  
+**Verified:** 2026-08-28 03:59 UTC (fresh recheck after the interrupted attempt)
 **Scope:** clean candidate checkout, exact production build, local production preview, and live static PWA. No product code was changed.
 
 ## Verdict
@@ -10,6 +10,13 @@
 **FAIL.** The bookmark reconciliation job works end to end and the live deployment matches the candidate's production output byte for byte. However, the live global Content Security Policy blocks the inline stylesheet in the shipped offline fallback document. Loading `/offline.html` produces a browser console error and renders the fallback without its intended product styling. This violates the explicit no-console-errors quality gate and the PWA requirement for a first-class offline fallback.
 
 There were no critical or high-severity defects and no serious/critical axe findings. The single medium-severity acceptance defect below is release-blocking under this work order.
+
+| Severity | Count | Result |
+| --- | ---: | --- |
+| Critical | 0 | None found |
+| High | 0 | None found |
+| Medium | 1 | Release-blocking offline fallback CSP defect |
+| Low | 0 | None found |
 
 ## Defect
 
@@ -35,13 +42,13 @@ Reproduction:
 2. Observe HTTP 200 and the browser console.
 3. The CSP error appears and the page is rendered with browser-default styling rather than the documented topographic visual system.
 
-An independent Playwright response-policy test passed for `/privacy/` and `/terms/`, then failed specifically on `/offline.html` with the error above. The root app's service-worker-controlled offline reload still passes because the worker normally falls back to its cached `/` shell; that does not remove the defect in the separately shipped fallback document.
+An independent Playwright response-policy test passed for `/privacy/` and `/terms/`, then reproduced the error specifically on `/offline.html`. Computed styles were a transparent background, black text, and 16px Times New Roman instead of the specified `#F4F0E6` paper background and system sans-serif treatment. The root app's service-worker-controlled offline reload still passes because the worker normally falls back to its cached `/` shell; that does not remove the defect in the separately shipped fallback document.
 
 Recommended repair: move the fallback CSS to a same-origin external stylesheet included in the precache, or authorize only the exact inline style hash. Do not weaken the global policy with unrestricted `unsafe-inline`.
 
 ## Clean checkout and repository gates
 
-- Started from a clean `main` worktree at `f22708ff55f7b6e50e0d6d05fe28b5c1bf6ef8ed`; a fresh fetch confirmed `origin/main` at the same commit.
+- Started from a separate clean detached worktree at exactly `f22708ff55f7b6e50e0d6d05fe28b5c1bf6ef8ed`. A fresh fetch showed `origin/main` at documentation-only verifier commit `522a185d563c468bbbac08a7a0b7c0d319d4421d`; its only changes from the candidate are this report and the handoff.
 - `npm ci`: passed; 114 packages installed, 115 audited, 0 vulnerabilities.
 - `npm run typecheck`: passed (`tsc --noEmit`).
 - No lint script or lint configuration is present; TypeScript is the repository's available static source gate.
@@ -57,6 +64,8 @@ Recommended repair: move the fallback CSS to a same-origin external stylesheet i
 
 A disposable verifier-only Playwright spec was run and removed before this report was committed.
 
+The final live run of that independent spec passed 7 checks with 1 intentional desktop skip for the mobile-only 200% text scenario. The same scenarios passed against the local production preview; a verifier timeout adjustment for the 20 MiB upload is documented below.
+
 Passed locally and live:
 
 - Imported representative nested Netscape-format desktop and mobile exports containing eight input copies.
@@ -65,24 +74,24 @@ Passed locally and live:
 - Collapsed exact duplicates while preserving one original URL and the selected title and folder in the exported HTML.
 - Selected the alternate title and folder for a shared row, excluded it, reloaded, and confirmed the choice and exclusion recovered from IndexedDB.
 - Exported and inspected both downloads. The merged HTML retained every included distinct row and only one duplicate URL; the CSV contained one header plus six audit rows and recorded the excluded shared row.
-- Turned tracking grouping off and back on; the result count changed from 81 to 82 and back to 81 without altering original URLs.
+- Turned tracking grouping off and back on; the representative result count changed from 6 to 7 and back to 6 without altering original URLs.
 - Exercised the 80-row rendering boundary with 81 results and “Show 1 more.”
 - Exercised a no-match search state and recovery.
 - Rejected a `.txt` input, an HTML file with no bookmarks, and a 20 MiB + 1 byte HTML input; each showed actionable text. A valid `.htm` import then recovered successfully and completed comparison.
 - Cancelled “Start over” and retained the project; confirmed it and cleared both maps and saved review state.
 - Captured requests throughout private-file processing: every request stayed on the application origin. No bookmark URL, analytics, tracking, font, script, or API request was made.
 
-The oversized in-memory Playwright upload took longer than the app's 4.5-second toast in the first combined verifier run, so that assertion initially missed the transient message. The same boundary passed on an isolated retry with the verifier retaining the toast; this was a harness timing issue, not a product failure.
+The oversized in-memory Playwright upload exceeded the verifier's initial 30-second per-test timeout in one concurrent desktop run. It passed unchanged with a 90-second harness timeout and also passed on mobile; this was serialization overhead in the verifier, not a product failure.
 
 ## Accessibility and responsive behavior
 
 - Axe 4.10.2 found zero serious or critical violations on the empty app, populated results, and the keyboard bulk-exclusion state on both desktop and 390px mobile.
-- An additional axe run after sample comparison at 200% root text size found zero serious or critical violations on both profiles.
+- An additional axe run after sample comparison and keyboard exclusion at 200% root text size found zero serious or critical violations at 390px.
 - Keyboard checks covered the skip link, sample action, filters, and bulk exclusion with Tab/Enter; native row controls exposed labels and keyboard-operable roles. The skip link showed a computed 3px outline plus the designed outer focus ring.
 - Reduced-motion emulation reduced transition durations to at most 1ms.
 - No horizontal overflow occurred at 390×844, including at 200% text size. Desktop and mobile screenshots were visually inspected.
 - Main document checks: descriptive title, `lang="en"`, exactly one `<h1>`, `<main>`, meaningful hero alt text, no unlabeled buttons, and correctly associated form labels.
-- The factory URL verifier returned HTTP 200, loaded in 905ms, found zero console/page errors on the main route, and confirmed title/lang/one H1/main/alt/button basics.
+- The factory URL verifier returned HTTP 200, loaded in 752ms, found zero console/page errors on the main route, and confirmed title/lang/one H1/main/alt/button basics.
 - The only browser error found was the explicit `/offline.html` CSP failure described above.
 
 ## PWA, offline, and persistence
@@ -90,7 +99,7 @@ The oversized in-memory Playwright upload took longer than the app's 4.5-second 
 - Manifest is valid JSON with `name`, `short_name`, `display: standalone`, versioned `start_url`, matching theme/background colors, 192×192 and 512×512 icons, and a 512×512 maskable icon.
 - Service worker registered and controlled the app on desktop and mobile.
 - Controlled offline reload passed on both profiles and displayed the saved offline state.
-- `registration.update()` completed; the active worker was `/sw.js`; cache `bookmark-merge-map-v4` was present.
+- `registration.update()` completed on both profiles; the active worker was `/sw.js`, no worker was waiting or installing, and cache `bookmark-merge-map-v4` was present. A real two-version promotion could not be forced without changing production; the update hooks were inspected instead.
 - The worker uses a versioned cache, `skipWaiting()`, `clients.claim()`, and a same-origin fetch policy.
 - Imported files and review decisions recovered from IndexedDB after reload; “Start over” cleared them only after confirmation.
 - The explicit fallback document is present and cached, but its live styling is blocked by CSP as reported above.
@@ -135,8 +144,8 @@ Lighthouse 13.4.1 against the live URL:
 
 | Profile | Performance | Accessibility | Best practices | SEO | FCP | LCP | TBT | CLS | Transfer |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Mobile | 98 | 100 | 100 | 100 | 1.0s | 1.4s | 160ms | 0 | 88 KiB |
-| Desktop | 100 | 100 | 100 | 100 | 0.3s | 0.4s | 0ms | 0 | 166 KiB |
+| Mobile | 99 | 100 | 100 | 100 | 0.9s | 1.4s | 130ms | 0 | 75 KiB |
+| Desktop | 100 | 100 | 100 | 100 | 0.2s | 0.4s | 0ms | 0 | 166 KiB |
 
 All stated static/PWA performance budgets pass.
 
@@ -157,6 +166,6 @@ npm audit --omit=dev --audit-level=low
 npm run build
 npm run test:e2e
 PLAYWRIGHT_BASE_URL=https://bookmark-merge-map.sociobot.in npm run test:e2e
-VERIFY_NODE_MODULES=/work/repo/node_modules /opt/fleet/lib/verify-url.sh https://bookmark-merge-map.sociobot.in <evidence-dir>
+VERIFY_NODE_MODULES=<clean-checkout>/node_modules /opt/fleet/lib/verify-url.sh https://bookmark-merge-map.sociobot.in <evidence-dir>
 CHROME_PATH=/opt/pw-browsers/chromium-1208/chrome-linux64/chrome npx --yes lighthouse@13.4.1 https://bookmark-merge-map.sociobot.in ...
 ```

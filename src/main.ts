@@ -170,6 +170,8 @@ async function readFile(source: SourceId, file: File): Promise<void> {
   state.error = '';
   if (!/\.html?$/i.test(file.name) && file.type !== 'text/html') { showMessage('Choose a bookmark export ending in .html or .htm.', true); return; }
   if (file.size > 20 * 1024 * 1024) { showMessage('That file is over 20 MB. Split the export, then try again.', true); return; }
+  state.note = `Reading ${file.name} on this device…`;
+  render();
   try {
     const html = await file.text();
     const map = parseBookmarkHtml(html, source, state.stripTracking, file.name);

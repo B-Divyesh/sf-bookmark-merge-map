@@ -8,6 +8,7 @@ interface RouteConfig {
 
 interface StaticWebAppConfig {
   globalHeaders: Record<string, string>;
+  mimeTypes: Record<string, string>;
   routes: RouteConfig[];
 }
 
@@ -20,8 +21,8 @@ describe('production response policy', () => {
   });
 
   it('serves the manifest with its correct MIME type and keeps the worker revalidatable', () => {
+    expect(config.mimeTypes['.webmanifest']).toBe('application/manifest+json');
     expect(route('/manifest.webmanifest')).toMatchObject({
-      'Content-Type': 'application/manifest+json',
       'Cache-Control': 'public, max-age=300, must-revalidate'
     });
     expect(route('/sw.js')?.['Cache-Control']).toBe('no-cache');

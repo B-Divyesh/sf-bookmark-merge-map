@@ -1,4 +1,4 @@
-const CACHE = 'bookmark-merge-map-v3';
+const CACHE = 'bookmark-merge-map-v4';
 const PAGES = ['/', '/privacy/', '/terms/'];
 const CORE = [...PAGES, '/offline.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/assets/merge-map-640.webp', '/assets/merge-map-960.webp', '/assets/merge-map-1536.webp'];
 

@@ -89,7 +89,7 @@ function resultRow(row: MergeRow, index: number): string {
   return `<article class="result-row ${row.included ? '' : 'excluded'}" data-result-index="${index}">
     <label class="include-control"><input type="checkbox" data-action="include" ${row.included ? 'checked' : ''}/><span class="visually-hidden">Include ${escapeHtml(row.title)}</span></label>
     <div class="result-main">
-      <div class="result-heading"><span class="status-mark status-${row.status}">${statusLabels[row.status]}</span><span class="sources" aria-label="Found in map ${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join(' and ')}">${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join('+')}</span></div>
+      <div class="result-heading"><span class="status-mark status-${row.status}">${statusLabels[row.status]}</span><span class="inclusion-state">${row.included ? 'Included in export' : 'Excluded from export'}</span><span class="sources" aria-label="Found in map ${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join(' and ')}">${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join('+')}</span></div>
       ${titles.length > 1 ? `<label class="choice-label">Export title<select data-action="title">${titles.map((title) => `<option ${title === row.title ? 'selected' : ''}>${escapeHtml(title)}</option>`).join('')}</select></label>` : `<h3>${escapeHtml(row.title)}</h3>`}
       ${/^https?:/i.test(original.url) ? `<a class="url" href="${escapeHtml(original.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(original.url)}</a>` : `<span class="url">${escapeHtml(original.url)}</span>`}
       <div class="row-meta">

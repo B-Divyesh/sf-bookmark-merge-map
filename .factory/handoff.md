@@ -1,43 +1,55 @@
-# Bookmark Merge Map — independent verification handoff
+# Bookmark Merge Map — repair handoff
 
 ## Release status
 
-**FAIL** for candidate `f22708ff55f7b6e50e0d6d05fe28b5c1bf6ef8ed` at https://bookmark-merge-map.sociobot.in/, freshly reverified independently on 2026-08-28 at 03:59 UTC.
+**PASS.** Repair commit `422f4f5` was deployed as the existing static PWA to <https://bookmark-merge-map.sociobot.in/> on 2026-08-28. It repairs the sole release blocker documented in the independent verification at base `6cd6f9d6fa9ac632b2a1952904602aa3de33359b` without changing the researched bookmark-merge behavior.
 
-The live deployment matches the candidate build byte for byte, and the core merge workflow, exports, local persistence, controlled offline reload, accessibility, privacy, caching, and performance checks pass. Release acceptance is blocked by one medium-severity deployment-policy defect: the global `style-src 'self'` CSP blocks the inline stylesheet in `/offline.html`, generating a console error and leaving the explicit offline fallback unstyled.
+## Repair
 
-Full evidence and reproduction are in `.factory/verification-2.md`.
+- Moved the explicit offline fallback’s CSS from an inline `<style>` into same-origin `public/offline.css`.
+- Kept the strict `style-src 'self'` CSP; no `unsafe-inline`, hash exception, or policy weakening was added.
+- Bumped the service-worker cache to `bookmark-merge-map-v5` and precached `/offline.css`, so the direct fallback remains styled after a controlled offline reload.
+- Added exact regressions: response-policy tests require the external stylesheet, prohibit inline fallback CSS and `unsafe-inline`, and require service-worker precaching; Playwright fulfills `/offline.html` with the production CSP and verifies its computed visual treatment and zero browser errors on desktop and 390×844 mobile.
 
-## Verification summary
+## Reproduction and live result
 
-- Clean install: passed; 0 vulnerabilities.
-- Typecheck: passed.
-- Unit/integration tests: 7/7 passed.
-- Exact production build: passed; `dist/` produced.
-- Committed Playwright: 12/12 local and 12/12 live across desktop and 390×844 mobile.
-- Independent merge, invalid-input recovery, 80/81 boundary, persistence, keyboard, 200% text, and export-content scenarios: passed.
-- Axe: zero serious/critical findings in tested main-app states.
-- Controlled service-worker offline reload and update check: passed on desktop and mobile; active cache `bookmark-merge-map-v4`.
-- Main-route console/page errors: zero. `/privacy/` and `/terms/`: zero. `/offline.html`: one CSP console error — blocking defect.
-- Privacy capture: same-origin requests only; no bookmark-page fetch, telemetry, third-party script/font, API, or cookie observed.
-- Live identity: 14/14 checked artifacts matched clean local `dist/` SHA-256 values.
-- Lighthouse mobile: 99 performance / 100 accessibility / 100 best practices / 100 SEO; LCP 1.4s, TBT 130ms, CLS 0.
-- Lighthouse desktop: 100/100/100/100; LCP 0.4s, TBT 0ms, CLS 0.
-- Bundle budgets: 23.99 KB JS, 16.05 KB CSS, 60.85 KB mobile hero; all pass.
+Before deployment, the prior live `/offline.html` reproduced the verifier’s failure: Chromium reported the `style-src 'self'` inline-style violation and computed `rgba(0, 0, 0, 0)` background, black `16px` Times New Roman text.
 
-## Required repair
+After deployment, direct live `/offline.html` at 390×844 reported no console/page errors and computed `rgb(244, 240, 230)` background, `rgb(23, 33, 29)` text, and `18px` `system-ui, sans-serif`. After visiting `/` to establish the worker, loading `/offline.html`, setting the browser offline, and reloading, those same paper background and 18px styles remained available with zero errors.
 
-Move the inline CSS in `public/offline.html` to a same-origin external stylesheet included in the service-worker precache, or add only its exact CSP hash. Keep the restrictive CSP; do not add unrestricted `unsafe-inline`. Then rebuild, redeploy, and verify both a direct `/offline.html` load and an offline reload with zero console errors.
+## Verification evidence
 
-## Re-run
+All commands were run from a clean dependency install:
 
 ```bash
 npm ci
 npm run typecheck
 npm test
+npm audit --audit-level=low
+npm audit --omit=dev --audit-level=low
 npm run build
 npm run test:e2e
 PLAYWRIGHT_BASE_URL=https://bookmark-merge-map.sociobot.in npm run test:e2e
 ```
 
-No product code was modified during verification. Only this handoff and `.factory/verification-2.md` were added/updated.
+- `npm ci`: 114 packages installed; audit reported 0 vulnerabilities.
+- Typecheck: passed.
+- Unit/integration: 2 files, 8/8 tests passed, including the CSP/precache regression.
+- Production build: passed; `dist/index.html` is present.
+- Browser: 14/14 Playwright tests passed locally and 14/14 against production, each across Desktop Chromium and Pixel 5 at 390×844. Coverage includes normal merge/export, keyboard bulk exclusion, axe serious/critical checks, focus, reduced motion, no horizontal overflow, same-origin-only requests, service-worker update checks, root offline reload, and the CSP-enforced direct fallback test.
+- Factory URL check on production: HTTP 200, 577ms load, zero console/page errors; title, `lang`, one H1, main landmark, image alt text, and button labels passed.
+- Live response policy: direct fallback and its stylesheet retain `style-src 'self'` and restrictive Permissions Policy; `offline.css` is `text/css`; hashed JS/CSS are `public, max-age=31536000, immutable`; manifest is `application/manifest+json`; `/sw.js` is `no-cache`; no cookies were observed.
+- Privacy: browser request capture during the app workflow and fallback load saw only `https://bookmark-merge-map.sociobot.in`; no analytics, third-party resources, bookmark URL fetches, APIs, or cookies were observed.
+- Live identity: SHA-256 matched local `dist/` for 15 artifacts: root, offline HTML/CSS, service worker, manifest, privacy and terms pages, all three icons, all three hero variants, and the production JS/CSS bundles. Key repaired hashes: `/offline.html` `02c69d963c6333253582e79506d3349b6c7945e80840ff572199783f4879e310`, `/offline.css` `8ba9dbfe622754184d66094954666fdb9b49046040f7c7e68f6be7c9e83463ae`, `/sw.js` `c171c4a0c28fb29bd391decba8dced09d4c2eb241d2d5751a419464afb1cef98`.
+- Lighthouse 13.4.1 production: mobile 100 performance / 100 accessibility / 100 best practices / 100 SEO (FCP 0.9s, LCP 1.2s, TBT 60ms, CLS 0, 74 KiB transfer); desktop 100/100/100/100 (FCP 0.3s, LCP 0.4s, TBT 0ms, CLS 0, 165 KiB transfer).
+- Build budgets remain within contract: main JavaScript 23.99 KB raw (8.74 KB gzip), main CSS 16.05 KB raw (4.50 KB gzip), and mobile hero 60.85 KB.
+
+This remains a static, local-first PWA; package-consumer, backend health, and server-concurrency checks do not apply. No known release gaps remain.
+
+## Run and deploy
+
+Use `npm run dev` for local development. Run `npm test`, `npm run build`, and `npm run test:e2e` before release. The deployable artifact is `dist/`; deployment was performed with:
+
+```bash
+/opt/fleet/lib/deploy-static.sh bookmark-merge-map dist
+```

@@ -1,5 +1,11 @@
 # Bookmark Merge Map — build handoff
 
+## Independent verification 1 (2026-08-28) — FAIL
+
+Candidate `3ef87e03fa878e0df32fce2ba33d34d228b9bf16` at https://bookmark-merge-map.sociobot.in/ was independently verified from a clean checkout. **Do not release as accepted:** excluding a review row applies `opacity: .5` to the entire row and produces axe serious color-contrast failures (effective contrast as low as 2.10:1). The complete evidence, live byte-parity hashes, test results, header/cache findings, PWA/offline results, and required remediation are in `.factory/verification-1.md`.
+
+The prior committed unit/build/e2e gates do pass, and the live deployment matches the candidate's checked artifacts, so this is a product accessibility failure rather than a deployment mismatch. A secondary deployment finding is that content-hashed JS/CSS are served with only `max-age=30, must-revalidate`, not long-lived immutable caching.
+
 ## Shipped
 
 - Complete local-first reconciliation flow for two Netscape-format browser bookmark HTML exports.

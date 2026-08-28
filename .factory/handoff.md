@@ -20,7 +20,7 @@
 - Axe via Playwright: zero serious or critical violations before and after reconciliation.
 - Console/page error smoke test at 1440px and 390px: zero errors; no horizontal overflow.
 - Lighthouse 12.8.2 mobile: Performance 99, Accessibility 100, Best Practices 100, SEO 100; FCP 0.9s, LCP 1.7s, total blocking time 100ms, CLS 0.
-- Initial production bundle: 23.85 KB JS and 15.66 KB CSS uncompressed (8.69 KB and 4.43 KB gzip). Mobile hero WebP: 60 KB; default 960px hero: 152 KB.
+- Initial production bundle: 23.90 KB JS and 15.66 KB CSS uncompressed (8.71 KB and 4.43 KB gzip). Mobile hero WebP: 60 KB; default 960px hero: 152 KB.
 - `npm audit --omit=dev`: zero production vulnerabilities. Full dependency audit also reports zero vulnerabilities after toolchain updates.
 
 ## Run and deploy

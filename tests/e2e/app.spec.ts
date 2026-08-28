@@ -85,6 +85,7 @@ test('keeps the release shell private, responsive, focused, and reduced-motion s
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await page.waitForLoadState('networkidle');
+  const expectedOrigin = new URL(page.url()).origin;
 
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
@@ -93,6 +94,6 @@ test('keeps the release shell private, responsive, focused, and reduced-motion s
     getComputedStyle(element).transitionDuration.split(',').map((duration) => parseFloat(duration) * (duration.includes('ms') ? 1 : 1000))
   );
   expect(transitionDurations.every((duration) => duration <= 1)).toBe(true);
-  expect([...requestOrigins]).toEqual(['http://127.0.0.1:4173']);
+  expect([...requestOrigins]).toEqual([expectedOrigin]);
   expect(errors).toEqual([]);
 });

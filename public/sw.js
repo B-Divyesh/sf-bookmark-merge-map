@@ -1,6 +1,6 @@
-const CACHE = 'bookmark-merge-map-v4';
+const CACHE = 'bookmark-merge-map-v5';
 const PAGES = ['/', '/privacy/', '/terms/'];
-const CORE = [...PAGES, '/offline.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/assets/merge-map-640.webp', '/assets/merge-map-960.webp', '/assets/merge-map-1536.webp'];
+const CORE = [...PAGES, '/offline.html', '/offline.css', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/assets/merge-map-640.webp', '/assets/merge-map-960.webp', '/assets/merge-map-1536.webp'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then(async (cache) => {

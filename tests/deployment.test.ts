@@ -14,6 +14,8 @@ interface StaticWebAppConfig {
 
 const config = JSON.parse(readFileSync('public/staticwebapp.config.json', 'utf8')) as StaticWebAppConfig;
 const route = (path: string) => config.routes.find((candidate) => candidate.route === path)?.headers;
+const offlineHtml = readFileSync('public/offline.html', 'utf8');
+const serviceWorker = readFileSync('public/sw.js', 'utf8');
 
 describe('production response policy', () => {
   it('serves built assets with a long-lived immutable cache policy', () => {
@@ -35,5 +37,14 @@ describe('production response policy', () => {
     expect(csp).toContain("object-src 'none'");
     expect(config.globalHeaders['Permissions-Policy']).toContain('camera=()');
     expect(config.globalHeaders['Permissions-Policy']).toContain('payment=()');
+  });
+
+  it('keeps the offline fallback CSP-safe and precaches its stylesheet', () => {
+    const csp = config.globalHeaders['Content-Security-Policy'];
+    expect(csp).toContain("style-src 'self'");
+    expect(csp).not.toContain('unsafe-inline');
+    expect(offlineHtml).toContain('<link rel="stylesheet" href="/offline.css">');
+    expect(offlineHtml).not.toContain('<style');
+    expect(serviceWorker).toContain("'/offline.css'");
   });
 });

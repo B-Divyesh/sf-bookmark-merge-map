@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFileSync } from 'node:fs';
 test('sample merge works, exports, and has one main heading', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle(/Bookmark Merge Map/);
@@ -34,7 +35,27 @@ test('service worker uses a versioned release cache and accepts an update check'
     };
   });
   expect(worker.active).toContain('/sw.js');
-  expect(worker.caches).toContain('bookmark-merge-map-v4');
+  expect(worker.caches).toContain('bookmark-merge-map-v5');
+});
+test('offline fallback remains styled with the production CSP', async ({ page }) => {
+  const errors: string[] = [];
+  const offlineHtml = readFileSync('public/offline.html', 'utf8');
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.route('**/offline.html', (route) => route.fulfill({
+    status: 200,
+    contentType: 'text/html; charset=utf-8',
+    headers: { 'Content-Security-Policy': "default-src 'self'; style-src 'self'" },
+    body: offlineHtml
+  }));
+  await page.goto('/offline.html');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('The map is still on this device.');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(244, 240, 230)');
+  await expect(page.locator('body')).toHaveCSS('color', 'rgb(23, 33, 29)');
+  await expect(page.locator('body')).toHaveCSS('font-size', '18px');
+  expect(errors).toEqual([]);
 });
 test('has no serious accessibility violations before or after compare', async ({ page }) => {
   await page.goto('/');

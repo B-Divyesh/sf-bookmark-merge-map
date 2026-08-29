@@ -13,6 +13,10 @@
   },
   "routes": [
     {
+      "route": "/404",
+      "statusCode": 404
+    },
+    {
       "route": "/demo",
       "rewrite": "/index.html"
     },

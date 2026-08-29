@@ -5,6 +5,7 @@ interface RouteConfig {
   route: string;
   headers?: Record<string, string>;
   rewrite?: string;
+  statusCode?: number;
 }
 
 interface StaticWebAppConfig {
@@ -58,7 +59,7 @@ describe('production response policy', () => {
 
   it('rewrites every real route and uses a designed 404 response', () => {
     for (const path of ['/demo', '/privacy', '/terms']) expect(config.routes.find((item) => item.route === path)?.rewrite).toBe('/index.html');
-    expect(config.routes.find((item) => item.route === '/404')).toBeUndefined();
+    expect(config.routes.find((item) => item.route === '/404')).toEqual({ route: '/404', statusCode: 404 });
     expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html' });
   });
 

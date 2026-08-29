@@ -1,68 +1,30 @@
-# Bookmark Merge Map — polish 1 handoff
+# Bookmark Merge Map — review 2 handoff
 
-## Release status
+## Status
 
-PASS. Every blocking and minor finding in `.factory/review-1.md` is repaired and mapped in `.factory/polish-1.md`. No earlier review or polish file exists. The prior regression items quoted by review 1 remain covered.
+**FAIL.** This work order was an independent, read-only review. No product code or assets were changed. The review is recorded in `.factory/review-2.md`.
 
-Live product: <https://bookmark-merge-map.sociobot.in/>
+## What was checked
 
-Direct demo: <https://bookmark-merge-map.sociobot.in/demo> and <https://bookmark-merge-map.sociobot.in/?demo=1>
+- Fresh live Chromium sessions at 390×844 and 1440×1000.
+- The live demo, demo storage isolation, reset behavior, outgoing requests, route metadata, unknown-route response, keyboard/accessibility suite, and every live link.
+- A clean clone at `/tmp/bookmark-merge-map-review2-qADGOa`: `npm ci`, `npm test`, `npm run build`, and all 13 exact claim commands from `.factory/claims.json`.
+- The full 36-check Playwright suite against the live deployment.
+- Every prior review/polish/handoff finding and the complete landing-page/README copy inventory.
 
-## What changed
+## Verified results
 
-- Replaced the first screen with a job headline, audience sentence, one-click sample action, real import alternative, and three tested facts.
-- Added a real demo sandbox with immediate sample results, persistent banner, reset/exit controls, and a separate IndexedDB database.
-- Added 13 claim records and one isolated Playwright test for each claim.
-- Added real route views, per-route titles and metadata, route focus/announcement, back support, a shared shell, and a styled 404 with a true 404 response.
-- Rewrote metaphorical labels and dense README text in plain bookmark language.
-- Added social-card art, SVG/touch icons, canonical/Open Graph/Twitter metadata, sitemap routes, and deployment security headers.
-- Preserved the field-map palette, contour texture, generated art, condensed type, and restrained motion.
+- Clean clone: `npm test` passed 16/16; `npm run build` passed and produced `dist/`.
+- All 13 individually invoked claim tests passed; the combined claim run passed 26/26 across desktop and mobile.
+- The live full suite passed 36/36. Live cold-page requests were same-origin only; console errors were zero.
+- The home screen clearly states the job, audience, and first action at both viewports. Demo storage used only `demo:bookmark-merge-map`, and Reset restored its sample after its asynchronous update completed.
 
-## Verification
+## Findings left
 
-Run locally:
+1. **Blocking:** `/demo` loads five rows but shows no actual sample record in its first viewport. The first row begins at 2,606 px on 390px mobile and 2,056 px on desktop, after the demo intro and import UI.
+2. **Minor:** the footer link to `https://www.sociobot.in/` fails TLS hostname validation. `https://sociobot.in/` responds successfully.
+3. **Minor:** several visitor-facing feature/provenance promises have no direct claims entry or tagged test, and one matching explanation uses technical jargon. Details and concrete repairs are in the review.
 
-```bash
-npm ci
-npm test
-npm run build
-npm run test:e2e
-```
+## Next step
 
-Observed evidence on 2026-08-28:
-
-- `npm ci`: 115 packages audited, zero vulnerabilities.
-- `npm test`: 16/16 unit and deployment-policy tests passed.
-- `npm run build`: passed; `dist/index.html` exists.
-- Bundle: 10.36 KB gzip entry JS and 4.95 KB gzip CSS.
-- `npm run test:e2e`: 36/36 passed on desktop Chromium and 390×844.
-- Clean clone `/tmp/bookmark-merge-map-clean-v3xGTi`, commit `015136bd1fab30e6a732304c447b2103b1b1f924`: all 13 commands in `.factory/claims.json` passed separately.
-- Playwright axe: zero serious or critical violations on the empty root and populated demo at both viewports.
-- Lighthouse mobile: performance 100, accessibility 100, best practices 100, SEO 100; LCP 1.7 s; CLS 0; 78 KiB transfer.
-- Privacy: the whole demo filter/export flow requested only the application origin.
-- Offline: a controlled `/demo` reloaded with five results after `context.setOffline(true)`.
-- Live `verify-url.sh` on `/` and `/demo`: HTTPS 200, zero console errors, one H1, `lang=en`, main landmark, all image alt attributes present.
-- Live route status: `/demo`, `/privacy`, `/terms` returned 200; an unknown route returned 404 with the styled page.
-- Live full Playwright matrix: 36/36 passed at <https://bookmark-merge-map.sociobot.in>.
-
-Evidence files:
-
-- `.factory/evidence/live-root/verify.json`
-- `.factory/evidence/live-root/screenshot-desktop.png`
-- `.factory/evidence/live-root/screenshot-mobile.png`
-- `.factory/evidence/live-demo/verify.json`
-- `.factory/evidence/live-demo/screenshot-desktop.png`
-- `.factory/evidence/live-demo/screenshot-mobile.png`
-- `.factory/evidence/lighthouse-local.json`
-
-## Deployment
-
-- Source commits: `015136b`, `e793e5c`, `1adf38f`.
-- Pushed branch: `origin/main`.
-- Azure Static Web Apps deployment: `e1271b9d-4226-4eba-b6c4-117e0d2ca534`.
-- Deployed with `/opt/fleet/lib/deploy-static.sh bookmark-merge-map dist`.
-- Live security headers include CSP, Permissions Policy, nosniff, HSTS, and strict-origin referrer policy.
-
-## Known gaps and next steps
-
-None for this work order. All review findings, required claims, routes, mobile states, offline behavior, accessibility checks, and deployment checks pass.
+Move a representative populated comparison into the first demo viewport, repair the footer URL, and then close the listed claims/copy findings before requesting the next review.

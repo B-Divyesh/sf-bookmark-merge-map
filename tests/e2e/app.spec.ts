@@ -5,6 +5,8 @@ import { readFile } from 'node:fs/promises';
 const bookmarkExport = (folder: string, links: string) => `<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><H3>${folder}</H3><DL><p>${links}</DL><p></DL><p>`;
 const realA = bookmarkExport('Desktop work', '<DT><A HREF="https://real-a.example/one">Private desktop link</A>');
 const realB = bookmarkExport('Phone work', '<DT><A HREF="https://real-b.example/two">Private phone link</A>');
+const mergeA = bookmarkExport('Desktop folder', '<DT><A HREF="https://MERGE.example:443/page?b=2&amp;a=1#notes">Desktop guide</A><DT><A HREF="https://desktop.example/archive">Archive</A>');
+const mergeB = bookmarkExport('Phone folder', '<DT><A HREF="https://merge.example/page?a=1&amp;b=2">Phone guide</A><DT><A HREF="https://phone.example/archive">Archive</A>');
 
 async function openDemo(page: Page) {
   await page.goto('/demo');
@@ -59,6 +61,78 @@ test('?demo=1 opens the isolated sample result and its controls directly', async
   await expect(page.getByRole('button', { name: 'Reset demo' }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Start for real' })).toBeVisible();
   await expect(page.locator('.result-row')).toHaveCount(5);
+});
+
+test('@claim:demo-first-screen opens five sample results with a real result visible at 390px', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openDemo(page);
+  const preview = page.locator('.demo-preview-card').first();
+  const title = preview.getByRole('heading', { level: 3, name: 'Trail guide' });
+  const url = preview.getByText('https://example.com/guide?utm_source=desktop', { exact: true });
+  await expect(title).toBeVisible();
+  await expect(url).toBeVisible();
+  for (const locator of [title, url]) {
+    const box = await locator.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+  }
+  await expect(page.locator('.result-row')).toHaveCount(5);
+});
+
+test('@claim:sample-results sample shows shared, one-sided, and conflicting bookmarks', async ({ page }) => {
+  await openDemo(page);
+  const rows = page.locator('.result-row');
+  await expect(rows.filter({ hasText: 'Trail guide' })).toContainText('Shared');
+  await expect(rows.filter({ hasText: 'Learn PWA' })).toContainText('Only in B');
+  await expect(rows.filter({ hasText: 'https://example.org/archive' })).toContainText('Needs review');
+  await expect(rows.filter({ hasText: 'https://example.net/archive' })).toContainText('Needs review');
+});
+
+test('@claim:campaign-label-matching common campaign labels group as one bookmark', async ({ page }) => {
+  await openDemo(page);
+  const guide = page.locator('.result-row').filter({ hasText: 'Trail guide' });
+  await expect(guide).toHaveCount(1);
+  await expect(guide).toContainText('Shared');
+  await expect(guide).toContainText('2 copies collapse to one bookmark');
+  await expect(guide).toContainText('https://example.com/guide?utm_source=desktop');
+});
+
+test('@claim:merge-two-exports imports two exports and applies title and folder choices', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#file-a').setInputFiles({ name: 'desktop.html', mimeType: 'text/html', buffer: Buffer.from(mergeA) });
+  await page.locator('#file-b').setInputFiles({ name: 'phone.html', mimeType: 'text/html', buffer: Buffer.from(mergeB) });
+  await page.getByRole('button', { name: 'Compare 2 + 2 bookmarks' }).click();
+  await expect(page.locator('.result-row')).toHaveCount(3);
+  const shared = page.locator('.result-row').filter({ hasText: 'https://MERGE.example:443/page?b=2&a=1#notes' });
+  await expect(shared).toContainText('Shared');
+  await shared.getByLabel('Export title').selectOption({ label: 'Phone guide' });
+  await shared.getByLabel('Destination').selectOption({ label: 'Phone folder' });
+  const html = await downloadText(page, /Download merged HTML/);
+  expect(html.match(/<DT><A /g)).toHaveLength(3);
+  expect(html).toContain('<H3>Phone folder</H3>');
+  expect(html).toContain('Phone guide');
+  expect(html).toContain('https://MERGE.example:443/page?b=2&amp;a=1#notes');
+});
+
+test('@claim:demo-reset restores every original sample choice', async ({ page }) => {
+  await openDemo(page);
+  await page.locator('.result-row').first().getByRole('checkbox').uncheck();
+  await expect(page.locator('.result-row input[type="checkbox"]:checked')).toHaveCount(4);
+  await page.getByRole('button', { name: 'Reset demo' }).first().click();
+  await expect(page.locator('.result-row input[type="checkbox"]:checked')).toHaveCount(5);
+  await expect(page.locator('.result-row')).toHaveCount(5);
+});
+
+test('@claim:artwork-provenance generated map artwork has a shipped prompt and disclosure', async ({ page, request }) => {
+  await page.goto('/');
+  await expect(page.getByText('Map illustration generated for this product with Azure AI Foundry.')).toBeVisible();
+  expect((await request.get('/assets/merge-map-640.webp')).ok()).toBe(true);
+  const design = await readFile('.factory/design.md', 'utf8');
+  const prompt = JSON.parse(await readFile('assets/src/hero-map-a.prompt.json', 'utf8')) as Record<string, unknown>;
+  expect(design).toContain('Azure AI Foundry');
+  expect(design).toContain('/opt/fleet/lib/gen-image.sh');
+  expect(Object.keys(prompt).length).toBeGreaterThan(0);
 });
 
 test('@claim:privacy-local demo flow sends requests only to this site', async ({ page }) => {
@@ -155,9 +229,10 @@ test('@claim:bookmark-reading reads folder paths, titles, and URLs from both exp
 
 test('@claim:default-inclusion keeps every distinct sample destination selected by default', async ({ page }) => {
   await openDemo(page);
-  await expect(page.locator('.result-row input[type="checkbox"]:checked')).toHaveCount(5);
-  await expect(page.getByText('Needs review')).toHaveCount(2);
-  await expect(page.getByText('Only in B')).toHaveCount(1);
+  const rows = page.locator('.result-row');
+  await expect(rows.locator('input[type="checkbox"]:checked')).toHaveCount(5);
+  await expect(rows.getByText('Needs review')).toHaveCount(2);
+  await expect(rows.getByText('Only in B')).toHaveCount(1);
 });
 
 test('@claim:no-live-pages comparison does not open bookmark pages or update browser bookmarks', async ({ page }) => {
@@ -197,6 +272,9 @@ test('all product routes have metadata, one h1, a shared shell, and working inte
     await expect(page.locator('.site-header .brand')).toBeVisible();
   }
   for (const path of ['/demo', '/privacy', '/terms', '/404.html', '/assets/social-card.jpg', '/icons/apple-touch-icon.png']) expect((await request.get(path)).ok()).toBe(true);
+  const factoryLink = page.getByRole('link', { name: /Built by Param Factory.*opens sociobot\.in/ });
+  await expect(factoryLink).toHaveAttribute('href', 'https://sociobot.in/');
+  expect((await request.get('https://sociobot.in/')).ok()).toBe(true);
 });
 
 test('keyboard, mobile layout, reduced motion, and accessibility checks pass', async ({ page }) => {
@@ -218,6 +296,9 @@ test('keyboard, mobile layout, reduced motion, and accessibility checks pass', a
   await openDemo(page);
   axe = await new AxeBuilder({ page }).analyze();
   expect(axe.violations.filter((item) => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
+  await page.evaluate(() => { document.documentElement.style.fontSize = '32px'; });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect(page.locator('.demo-preview-card').first().getByText('Trail guide')).toBeVisible();
   expect(errors).toEqual([]);
 });
 

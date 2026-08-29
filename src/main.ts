@@ -5,7 +5,7 @@ import { clearProject, loadProject, saveProject, type StorageSpace } from './sto
 import type { ImportedMap, MergeRow, RowStatus, SavedProject, SourceId } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
-const BUILD = 'v1.1.0 · repair 1';
+const BUILD = 'v1.2.0 · polish 2';
 const ORIGIN = 'https://bookmark-merge-map.sociobot.in';
 type PageRoute = 'home' | 'demo' | 'privacy' | 'terms' | 'not-found';
 
@@ -57,7 +57,7 @@ function shellHeader(): string {
 }
 
 function shellFooter(): string {
-  return `<footer>${brand()}<p>Compare two bookmark exports and download one reviewed merge.<br><span>Original illustration generated for this product with Azure AI Foundry.</span></p><nav aria-label="Footer"><a href="/privacy" data-nav>Privacy</a><a href="/terms" data-nav>Terms</a><a href="https://www.sociobot.in/" target="_blank" rel="noopener noreferrer">Built by Param Factory</a><span>${BUILD}</span></nav></footer>`;
+  return `<footer>${brand()}<p>Compare two bookmark exports and download one reviewed merge.<br><span>Map illustration generated for this product with Azure AI Foundry.</span></p><nav aria-label="Footer"><a href="/privacy" data-nav>Privacy</a><a href="/terms" data-nav>Terms</a><a href="https://sociobot.in/" target="_blank" rel="noopener noreferrer">Built by Param Factory <span class="visually-hidden">(opens sociobot.in)</span><span aria-hidden="true">↗</span></a><span>${BUILD}</span></nav></footer>`;
 }
 
 function demoBanner(): string {
@@ -129,6 +129,21 @@ function resultRow(row: MergeRow, index: number): string {
   return `<article class="result-row ${row.included ? '' : 'excluded'}" data-result-index="${index}"><label class="include-control"><input type="checkbox" data-action="include" ${row.included ? 'checked' : ''}><span class="visually-hidden">Include ${escapeHtml(row.title)}</span></label><div class="result-main"><div class="result-heading"><span class="status-mark status-${row.status}">${statusLabels[row.status]}</span><span class="inclusion-state">${row.included ? 'Included in export' : 'Excluded from export'}</span><span class="sources" aria-label="Found in export ${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join(' and ')}">${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join('+')}</span></div>${titles.length > 1 ? `<label class="choice-label">Export title<select data-action="title">${titles.map((title) => `<option ${title === row.title ? 'selected' : ''}>${escapeHtml(title)}</option>`).join('')}</select></label>` : `<h3>${escapeHtml(row.title)}</h3>`}${/^https?:/i.test(original.url) ? `<a class="url" href="${escapeHtml(original.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(original.url)}</a>` : `<span class="url">${escapeHtml(original.url)}</span>`}<div class="row-meta">${folders.length > 1 ? `<label class="choice-label">Destination<select data-action="folder">${folders.map((folder) => { const path = folder.join(' / ') || 'Bookmarks bar'; return `<option value="${escapeHtml(folder.join('\u0000'))}" ${folder.join('\u0000') === row.folder.join('\u0000') ? 'selected' : ''}>${escapeHtml(path)}</option>`; }).join('')}</select></label>` : `<span class="folder">⌁ ${escapeHtml(row.folder.join(' / ') || 'Bookmarks bar')}</span>`}${row.notes.map((note) => `<span class="note">${escapeHtml(note)}</span>`).join('')}</div></div></article>`;
 }
 
+function demoPreview(): string {
+  if (state.route !== 'demo' || !state.rows.length) return '';
+  const representatives = [
+    state.rows.find((row) => row.status === 'shared'),
+    state.rows.find((row) => row.status === 'conflict'),
+    state.rows.find((row) => row.status === 'b-only')
+  ].filter((row): row is MergeRow => Boolean(row));
+  const statusLabels: Record<RowStatus, string> = { shared: 'Shared', 'a-only': 'Only in A', 'b-only': 'Only in B', conflict: 'Needs review' };
+  return `<section class="demo-preview" aria-labelledby="demo-preview-title"><div class="demo-preview-head"><div><div class="section-kicker">SAMPLE RESULTS</div><h2 id="demo-preview-title">See the merge before you review it</h2></div><a class="text-button" href="#results-title">Review all five results</a></div><div class="demo-preview-grid">${representatives.map((row) => {
+    const original = row.items[0];
+    const sourceNames = [...new Set(row.items.map((item) => item.source.toUpperCase()))];
+    return `<article class="demo-preview-card" data-preview-status="${row.status}"><div class="result-heading"><span class="status-mark status-${row.status}">${statusLabels[row.status]}</span><span class="inclusion-state">Selected</span><span class="sources" aria-label="Found in export ${sourceNames.join(' and ')}">${sourceNames.join('+')}</span></div><h3>${escapeHtml(row.title)}</h3><p class="preview-url">${escapeHtml(original.url)}</p><p class="folder">⌁ ${escapeHtml(row.folder.join(' / ') || 'Bookmarks bar')}</p></article>`;
+  }).join('')}</div></section>`;
+}
+
 function results(): string {
   if (!state.rows.length) return '';
   const summary = counts();
@@ -146,7 +161,7 @@ function renderProduct(): string {
   const demo = state.route === 'demo';
   setHead(demo ? 'Demo — Bookmark Merge Map' : 'Bookmark Merge Map — merge two bookmark exports', demo ? 'Try a bookmark merge with isolated sample data.' : 'Compare two browser bookmark exports, review duplicates and conflicts, then download a merged HTML file.', demo ? '/demo' : '/');
   const hero = demo ? `<section class="demo-intro"><div class="section-kicker">SAMPLE COMPARISON</div><h1 tabindex="-1">Compare sample bookmark exports</h1><p>Review five results from desktop and phone bookmark exports.</p></section>` : `<section class="hero"><div class="hero-copy"><h1 tabindex="-1">Merge two bookmark exports</h1><p>For people whose browser and phone bookmarks no longer match.</p><div class="hero-actions"><a class="primary-button hero-button" href="/demo" data-nav>Try it with sample data</a><a class="secondary-button" href="#import">Choose two HTML exports</a></div><p class="action-note">See duplicates, missing links, and conflicts before using your files.</p><ul class="hero-facts"><li>Files stay in your browser.</li><li>Works offline after first visit.</li><li>Free with no account.</li></ul></div><picture class="hero-map"><source media="(max-width: 700px)" srcset="/assets/merge-map-640.webp"><source srcset="/assets/merge-map-960.webp 960w, /assets/merge-map-1536.webp 1536w" sizes="(max-width: 1100px) 50vw, 560px"><img src="/assets/merge-map-960.webp" width="960" height="640" alt="Two green routes converge into one red route on an abstract paper map." fetchpriority="high" decoding="async"><span class="map-caption">TWO EXPORTS · ONE REVIEWED MERGE</span></picture></section>`;
-  return `${shellHeader()}${demoBanner()}<main id="main">${hero}${progress()}${importSection()}${results()}<section class="method" id="how" aria-labelledby="method-title"><div><div class="section-kicker">HOW IT WORKS</div><h2 id="method-title">How merging works</h2></div><ol><li><b>01</b><span><strong>Read each export</strong>Read folder paths, titles, and URLs from both files.</span></li><li><b>02</b><span><strong>Find likely duplicate URLs</strong>Compare hosts, fragments, parameter order, and optional campaign tags.</span></li><li><b>03</b><span><strong>Keep unique bookmarks selected</strong>Keep one-sided links and title conflicts until you remove them.</span></li><li><b>04</b><span><strong>Download both records</strong>Download merged bookmark HTML and a review CSV.</span></li></ol></section><section class="limits" aria-labelledby="limits-title"><h2 id="limits-title">What this does not do</h2><p>It does not open bookmark pages. It does not update bookmarks already in your browser.</p></section></main>${shellFooter()}`;
+  return `${shellHeader()}${demoBanner()}<main id="main">${hero}${demoPreview()}${progress()}${importSection()}${results()}<section class="method" id="how" aria-labelledby="method-title"><div><div class="section-kicker">HOW IT WORKS</div><h2 id="method-title">How merging works</h2></div><ol><li><b>01</b><span><strong>Read each export</strong>Read folder paths, titles, and URLs from both files.</span></li><li><b>02</b><span><strong>Find likely duplicate URLs</strong>Treat links that differ only by common campaign labels as the same bookmark.</span></li><li><b>03</b><span><strong>Keep unique bookmarks selected</strong>Keep one-sided links and title conflicts until you remove them.</span></li><li><b>04</b><span><strong>Download both records</strong>Download merged bookmark HTML and a review CSV.</span></li></ol></section><section class="limits" aria-labelledby="limits-title"><h2 id="limits-title">What this does not do</h2><p>It does not open bookmark pages. It does not update bookmarks already in your browser.</p></section></main>${shellFooter()}`;
 }
 
 function legalPage(kind: 'privacy' | 'terms'): string {

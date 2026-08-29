@@ -52,3 +52,7 @@ Generation: Azure AI Foundry `factory-image` through `/opt/fleet/lib/gen-image.s
 ## Polish 1 asset note
 
 The topographic direction, palette, type pairing, shape language, and motion policy remain unchanged. Polish 1 uses the existing generated map as a 1200×630 social-card crop and derives the 180px touch icon from the existing original icon. No new third-party asset was introduced.
+
+## Polish 2 interface note
+
+The demo now opens with three compact result slips arranged like map annotations: shared, needs-review, and phone-only. They use the existing paper, forest, vermilion, and ochre tokens. On phones, the shared record appears fully in the initial viewport and the remaining slips continue vertically. No image or third-party asset changed in this round.

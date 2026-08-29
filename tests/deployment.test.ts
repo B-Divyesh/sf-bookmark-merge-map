@@ -18,6 +18,8 @@ const config = JSON.parse(readFileSync('public/staticwebapp.config.json', 'utf8'
 const route = (path: string) => config.routes.find((candidate) => candidate.route === path)?.headers;
 const offlineHtml = readFileSync('public/offline.html', 'utf8');
 const serviceWorker = readFileSync('public/sw.js', 'utf8');
+const claims = JSON.parse(readFileSync('.factory/claims.json', 'utf8')) as Array<{ id: string; test: string }>;
+const browserTests = readFileSync('tests/e2e/app.spec.ts', 'utf8');
 
 describe('production response policy', () => {
   it('serves built assets with a long-lived immutable cache policy', () => {
@@ -51,11 +53,19 @@ describe('production response policy', () => {
   });
 
   it('advances the offline cache for this repaired release', () => {
-    expect(serviceWorker).toContain("const CACHE = 'bookmark-merge-map-v7'");
+    expect(serviceWorker).toContain("const CACHE = 'bookmark-merge-map-v8'");
   });
 
   it('rewrites every real route and uses a designed 404 response', () => {
     for (const path of ['/demo', '/privacy', '/terms']) expect(config.routes.find((item) => item.route === path)?.rewrite).toBe('/index.html');
     expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html' });
+  });
+
+  it('registers every claim once and gives it exactly one tagged browser test', () => {
+    expect(new Set(claims.map((claim) => claim.id)).size).toBe(claims.length);
+    for (const claim of claims) {
+      expect(claim.test).toContain(`@claim:${claim.id}`);
+      expect(browserTests.match(new RegExp(`@claim:${claim.id}(?![a-z0-9-])`, 'g'))).toHaveLength(1);
+    }
   });
 });

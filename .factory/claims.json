@@ -89,5 +89,47 @@
     "where": "What this does not do",
     "test": "npm run test:e2e -- --grep @claim:no-live-pages --project=chromium",
     "sandbox": "fresh /demo; log requests; filter results; assert same-origin only, unchanged demo source record, and no browser bookmarks API"
+  },
+  {
+    "id": "demo-first-screen",
+    "claim": "Opening the demo shows five sample results, with a real title and URL in the first 390 px viewport.",
+    "where": "landing action, demo first screen, README",
+    "test": "npm run test:e2e -- --grep @claim:demo-first-screen --project=chromium",
+    "sandbox": "fresh browser context at 390x844; open /demo; assert the first sample title and URL fit inside the initial viewport and five full results exist"
+  },
+  {
+    "id": "sample-results",
+    "claim": "The sample shows shared, one-sided, and same-title conflicting bookmarks.",
+    "where": "landing action note, demo preview, README",
+    "test": "npm run test:e2e -- --grep @claim:sample-results --project=chromium",
+    "sandbox": "fresh /demo; assert the shared Trail guide, phone-only Learn PWA, and both Reading archive conflict rows"
+  },
+  {
+    "id": "campaign-label-matching",
+    "claim": "Links that differ only by common campaign labels are treated as the same bookmark.",
+    "where": "How merging works",
+    "test": "npm run test:e2e -- --grep @claim:campaign-label-matching --project=chromium",
+    "sandbox": "fresh /demo; assert the two differently tagged Trail guide URLs form one shared row while the original tagged URL remains visible"
+  },
+  {
+    "id": "merge-two-exports",
+    "claim": "Imports two bookmark exports, lets you choose a title and folder, and uses those choices in merged HTML.",
+    "where": "README opening",
+    "test": "npm run test:e2e -- --grep @claim:merge-two-exports --project=chromium",
+    "sandbox": "fresh root; import two fixtures; verify shared and conflicting rows; select the phone title and folder; assert both in a three-link HTML download"
+  },
+  {
+    "id": "demo-reset",
+    "claim": "Reset demo restores all five original sample choices.",
+    "where": "demo banner, README",
+    "test": "npm run test:e2e -- --grep @claim:demo-reset --project=chromium",
+    "sandbox": "fresh /demo; exclude one sample; reset from the persistent banner; assert five original rows are selected"
+  },
+  {
+    "id": "artwork-provenance",
+    "claim": "The map illustration was generated for this product with Azure AI Foundry.",
+    "where": "footer, README",
+    "test": "npm run test:e2e -- --grep @claim:artwork-provenance --project=chromium",
+    "sandbox": "fresh root; assert the disclosure, shipped map asset, design provenance, generator record, and source prompt sidecar"
   }
 ]

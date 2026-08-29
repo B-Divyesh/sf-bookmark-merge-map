@@ -10,7 +10,9 @@ Files stay in your browser. Real projects are saved there for recovery. Download
 
 ## Try the isolated demo
 
-Open `/demo` to explore five sample results in one click. It uses the separate `demo:bookmark-merge-map` IndexedDB database.
+Open `/demo` to explore five sample results in one click. A populated result appears in the first phone-sized screen.
+
+The demo uses the separate `demo:bookmark-merge-map` IndexedDB database.
 
 **Reset demo** restores the original sample. **Start for real** discards demo data and restores only your real project.
 
@@ -35,7 +37,7 @@ npm run build
 npm run test:e2e
 ```
 
-Every visitor-facing product claim is listed in `.factory/claims.json`. Run each listed command from a clean checkout.
+Run every command in `.factory/claims.json` from a clean checkout.
 
 The production build writes `dist/index.html`, route assets, the service worker, and static deployment configuration.
 
@@ -49,12 +51,12 @@ The factory work order owns deployment. Do not change DNS, billing, or infrastru
 
 Bookmark contents are not sent to an API. Demo and real projects use separate IndexedDB databases.
 
-Known campaign tags can be ignored for matching without changing downloaded URLs. The control is reversible.
+Links that differ only by common campaign labels can match without changing downloaded URLs. The control is reversible.
 
 See `/privacy` and `/terms` in the built app.
 
 ## License and artwork
 
-MIT. The generated map artwork is original to this product.
+MIT. The map illustration was generated for this product with Azure AI Foundry.
 
 Its prompt and provenance are recorded in `.factory/design.md` and `assets/src/`.

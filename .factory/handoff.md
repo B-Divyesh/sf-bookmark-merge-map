@@ -1,51 +1,22 @@
-# Bookmark Merge Map — polish 2 handoff
+# Bookmark Merge Map — review 3 handoff
 
 ## Status
 
-**PASS.** Every cumulative review finding is fixed, tested, deployed, and rechecked cold on the live site. No known gap remains.
+**FAIL.** This review made no product-code changes. The committed review records one blocking and two minor findings.
 
-## What changed
+## What was checked
 
-- The isolated demo now shows real sample records in its first viewport, including selected state, title, URL, source, and folder.
-- Six direct claims and six tagged browser tests close every coverage gap recorded in review 2. A policy test enforces one registry entry to one test tag.
-- The Param Factory link uses the valid apex host and identifies itself as external.
-- The matching explanation now uses plain user language.
-- `/404` and arbitrary unknown routes both return the designed page with HTTP 404.
-- Version, offline cache, catalog description, README, demo guide, copy audit, design note, and claim registry are current for v1.2.0.
+- Cold live first reads in fresh 390×844 and 1440×1000 Chromium contexts.
+- One-click demo, first-viewport sample visibility, Reset demo, Start for real, isolated IndexedDB storage, same-origin request logging, and offline reload.
+- Every earlier review, polish, verification report, prior handoff, claims registry, design document, README, and source implementation. `.factory/brief.json` is absent.
+- `npm ci`, `npm test` (17/17), `npm run build`, and each of the 19 exact claim commands from fresh clone `/tmp/bookmark-merge-map-review3-NiUSAK` (all passed).
+- Full deployed Playwright matrix: `PLAYWRIGHT_BASE_URL=https://bookmark-merge-map.sociobot.in npm run test:e2e` (48/48 passed).
+- Route/metadata/header checks, live response headers, `verify-url.sh`, and a crawl of every anchor rendered on `/`, `/demo`, `/privacy`, `/terms`, and `/404`.
 
-The existing topographic reconciliation identity, local-first storage model, HTML/CSV workflow, privacy behavior, and static PWA deployment class are unchanged.
+## Remaining work
 
-## How to run and verify
+1. **Blocking F-3-1:** replace or stop rendering the three dead demo URL anchors (`example.com/guide`, `example.org/archive`, `example.net/archive`); add a populated-result link crawl test.
+2. **F-3-2:** change the 404 H1 from “This page is not on the map” to “Page not found.”
+3. **F-3-3:** register and test, or remove, the three unlisted README operational claims about Node 20, build output, and HTTPS/service workers.
 
-```bash
-npm ci
-npm run typecheck
-npm test
-npm run build
-npm run test:e2e
-```
-
-Run each exact `test` command in `.factory/claims.json` separately. For deployed verification:
-
-```bash
-PLAYWRIGHT_BASE_URL=https://bookmark-merge-map.sociobot.in npm run test:e2e
-VERIFY_NODE_MODULES=/work/repo/node_modules /opt/fleet/lib/verify-url.sh https://bookmark-merge-map.sociobot.in/ <evidence-dir>
-```
-
-## Evidence
-
-- Clean clone `/tmp/bookmark-merge-map-final-no2LBR` at product commit `50dc60502ba4814bb04b0444c50bf6eeed2b6335`: install passed with zero vulnerabilities, unit/policy suite 17/17, build passed, and all 19 claim commands passed separately.
-- Full local Playwright matrix: 48/48 across desktop and 390 px.
-- Full live Playwright matrix after final deployment: 48/48.
-- Axe: zero serious or critical findings on home and populated demo. Keyboard, focus, route announcements, reduced motion, 44 px targets, 200% text, and mobile overflow checks pass.
-- Local Lighthouse mobile: 100 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.4 s; TBT 30 ms; CLS 0; 77 KiB transfer.
-- Production bundles: JavaScript 30.31 KB raw / 10.58 KB gzip; CSS 19.86 KB raw / 5.21 KB gzip; mobile hero 60 KiB.
-- Live root and `/?demo=1`: HTTP 200, zero console errors, correct route titles, `lang=en`, one H1, main landmark, complete alt text and button names.
-- Live `/privacy` and `/terms`: HTTP 200. Live `/404` and an arbitrary unknown route: HTTP 404 with the designed page.
-- Live JavaScript matches the local production artifact byte-for-byte and returns an immutable one-year cache policy.
-- Final deployment id: `af3de35f-2244-4860-b424-e5f65c4913c2`.
-- Detailed finding map and screenshot paths: `.factory/polish-2.md` and `.factory/evidence/polish-2/`.
-
-## Known gaps and next steps
-
-None. No finding or severity is deferred.
+See `.factory/review-3.md` for exact evidence, all copy counts, and concrete repairs.

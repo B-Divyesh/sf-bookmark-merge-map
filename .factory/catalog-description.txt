@@ -1,1 +1,1 @@
-Merge two bookmark exports, resolve duplicates and conflicts, then download browser-ready HTML and a review CSV.
+Merge two bookmark exports, resolve duplicates and conflicts, then download merged HTML and a review CSV.

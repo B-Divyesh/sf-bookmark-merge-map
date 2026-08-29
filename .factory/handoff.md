@@ -1,22 +1,47 @@
-# Bookmark Merge Map — review 3 handoff
+# Bookmark Merge Map — polish 3 handoff
 
 ## Status
 
-**FAIL.** This review made no product-code changes. The committed review records one blocking and two minor findings.
+**PASS.** Every finding in `.factory/review-1.md`, `.factory/review-2.md`, and `.factory/review-3.md` is closed. No known product, accessibility, privacy, offline, or deployment gap remains. `.factory/brief.json` was absent before this repair, so the cumulative reviews and existing design thesis remained the scope sources.
 
-## What was checked
+## What changed
 
-- Cold live first reads in fresh 390×844 and 1440×1000 Chromium contexts.
-- One-click demo, first-viewport sample visibility, Reset demo, Start for real, isolated IndexedDB storage, same-origin request logging, and offline reload.
-- Every earlier review, polish, verification report, prior handoff, claims registry, design document, README, and source implementation. `.factory/brief.json` is absent.
-- `npm ci`, `npm test` (17/17), `npm run build`, and each of the 19 exact claim commands from fresh clone `/tmp/bookmark-merge-map-review3-NiUSAK` (all passed).
-- Full deployed Playwright matrix: `PLAYWRIGHT_BASE_URL=https://bookmark-merge-map.sociobot.in npm run test:e2e` (48/48 passed).
-- Route/metadata/header checks, live response headers, `verify-url.sh`, and a crawl of every anchor rendered on `/`, `/demo`, `/privacy`, `/terms`, and `/404`.
+- Demo sample URLs are non-interactive text, so the sample exposes no dead destinations. Real imported URLs remain labeled external links.
+- Both SPA and static error pages use the plain H1 `Page not found` and retain the product-specific contour treatment.
+- `package.json` now declares Node.js 20 or newer. New `node-version` and `build-output` claims prove the remaining README assertions.
+- The unneeded HTTPS assertion was removed. The claims registry now contains 21 unique, directly tested claims.
+- PWA cache/version identifiers advanced to v9 / v1.3.0, while demo isolation, first-screen copy, route focus, metadata, legal pages, mobile layout, and the visual thesis remain intact.
+- The verb-first catalog description is 105 characters: “Merge two bookmark exports, resolve duplicates and conflicts, then download merged HTML and a review CSV.”
 
-## Remaining work
+## How to verify
 
-1. **Blocking F-3-1:** replace or stop rendering the three dead demo URL anchors (`example.com/guide`, `example.org/archive`, `example.net/archive`); add a populated-result link crawl test.
-2. **F-3-2:** change the 404 H1 from “This page is not on the map” to “Page not found.”
-3. **F-3-3:** register and test, or remove, the three unlisted README operational claims about Node 20, build output, and HTTPS/service workers.
+```bash
+npm ci
+npm test
+npm run build
+npm run test:e2e
+PLAYWRIGHT_BASE_URL=https://bookmark-merge-map.sociobot.in npm run test:e2e
+```
 
-See `.factory/review-3.md` for exact evidence, all copy counts, and concrete repairs.
+Run every `test` command in `.factory/claims.json` separately from a clean checkout. The round-3 clean clone was `/tmp/bookmark-merge-map-polish3-clean-qTBnsF` at repair commit `9b5b23f5ba806472aff43420aff752822a296fa6`.
+
+## Exact evidence
+
+- Clean install: 114 packages, zero vulnerabilities.
+- Unit/policy: 17/17 passed.
+- Production build: passed; `dist/index.html`, `404.html`, service worker, deployment configuration, hashed JavaScript, and CSS present.
+- Claim matrix: 21/21 exact registry commands passed independently from the clean clone.
+- Browser matrix: 54/54 local and 54/54 live across desktop Chromium and 390×844.
+- Accessibility: Playwright axe found zero serious/critical issues; keyboard, focus, reduced motion, 44 px targets, mobile, and 200% text checks passed.
+- Privacy/offline: same-origin-only requests, separate demo/real IndexedDB, reset/exit isolation, and offline reload passed locally and live.
+- Lighthouse mobile: 99 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.6 s, CLS 0, 79 KiB transfer. See `.factory/evidence/polish-3/lighthouse-local.json`.
+- Cold live root/demo: zero console errors, correct title/lang, one H1, main landmark, complete alt text, and labeled buttons. See `.factory/evidence/polish-3/live-root/` and `live-demo/`.
+- Live 404: `/404` and `/this-route-does-not-exist` return HTTP 404 with `Page not found`. See `.factory/evidence/polish-3/live-404/screenshot-mobile.png`.
+- Live artifact identity: `main-DMqISFLf.js` local/live SHA-256 is `3e9106ee4b9a3601507e9d124f7d527cb6ff5d30a423ffdcaa550deb211ca736`.
+- Deployment: Azure Static Web Apps deployment `d74c7160-63a8-4533-bc98-0258eb3ff6bf` succeeded at <https://bookmark-merge-map.sociobot.in/>.
+
+The complete finding-to-change-to-evidence map is in `.factory/polish-3.md`.
+
+## Known gaps and next steps
+
+None. The deployment is current, the repository is buildable, and no review finding is deferred.

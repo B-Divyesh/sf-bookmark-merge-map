@@ -56,3 +56,7 @@ The topographic direction, palette, type pairing, shape language, and motion pol
 ## Polish 2 interface note
 
 The demo now opens with three compact result slips arranged like map annotations: shared, needs-review, and phone-only. They use the existing paper, forest, vermilion, and ochre tokens. On phones, the shared record appears fully in the initial viewport and the remaining slips continue vertically. No image or third-party asset changed in this round.
+
+## Polish 3 interface note
+
+The topographic reconciliation identity remains unchanged. Fictional sample destinations now use the same monospaced map readout without link behavior; real imported destinations retain labeled external links. The designed 404 keeps its contour treatment while its H1 uses the plain page name. No asset or palette changed in this round.

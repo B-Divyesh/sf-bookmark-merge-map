@@ -131,5 +131,19 @@
     "where": "footer, README",
     "test": "npm run test:e2e -- --grep @claim:artwork-provenance --project=chromium",
     "sandbox": "fresh root; assert the disclosure, shipped map asset, design provenance, generator record, and source prompt sidecar"
+  },
+  {
+    "id": "node-version",
+    "claim": "Local development requires Node.js 20 or newer.",
+    "where": "README, package metadata",
+    "test": "npm run test:e2e -- --grep @claim:node-version --project=chromium",
+    "sandbox": "clean checkout; assert package engines require Node.js 20 or newer and the executing clean-install runtime meets that version"
+  },
+  {
+    "id": "build-output",
+    "claim": "The production build writes the documented static deployment artifacts to dist.",
+    "where": "README",
+    "test": "npm run test:e2e -- --grep @claim:build-output --project=chromium",
+    "sandbox": "clean checkout; run the production build through the Playwright web server and assert index, 404, service worker, deployment config, JavaScript, and CSS artifacts"
   }
 ]

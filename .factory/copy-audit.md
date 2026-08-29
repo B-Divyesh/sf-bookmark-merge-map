@@ -1,4 +1,4 @@
-# Copy audit — polish 2
+# Copy audit — polish 3
 
 Audited 2026-08-29. Counts treat contractions and hyphenated terms as one word. Sample bookmark titles, URLs, file names, and numeric result summaries are data rather than landing copy.
 
@@ -84,13 +84,12 @@ Audited 2026-08-29. Counts treat contractions and hyphenated terms as one word. 
 | 12 | Start for real discards demo data and restores only your real project. | Pass; `demo-isolation` |
 | 9 | The installed app works offline after an online visit. | Pass; `offline-reload` |
 | 7 | It is free and needs no account. | Pass; `free-no-account` |
-| 5 | Requires Node.js 20 or newer. | Pass |
+| 5 | Requires Node.js 20 or newer. | Pass; `node-version` claim and package metadata |
 | 5 | Open the printed local URL. | Pass |
 | 11 | Choose two browser bookmark exports in HTML format, or open `/demo`. | Pass |
 | 9 | Run every command in `.factory/claims.json` from a clean checkout. | Pass; verification instruction |
-| 14 | The production build writes `dist/index.html`, route assets, the service worker, and static deployment configuration. | Pass |
+| 14 | The production build writes `dist/index.html`, route assets, the service worker, and static deployment configuration. | Pass; `build-output` claim |
 | 7 | Deploy the contents of `dist/` as a static site. | Pass |
-| 6 | HTTPS is required for service-worker installation. | Pass |
 | 7 | The factory work order owns deployment. | Pass |
 | 8 | Do not change DNS, billing, or infrastructure from this repository. | Pass |
 | 8 | Bookmark contents are not sent to an API. | Pass; `privacy-local` |

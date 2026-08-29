@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { readFile } from 'node:fs/promises';
+import { access, readFile, readdir } from 'node:fs/promises';
 
 const bookmarkExport = (folder: string, links: string) => `<!DOCTYPE NETSCAPE-Bookmark-file-1><DL><p><DT><H3>${folder}</H3><DL><p>${links}</DL><p></DL><p>`;
 const realA = bookmarkExport('Desktop work', '<DT><A HREF="https://real-a.example/one">Private desktop link</A>');
@@ -135,6 +135,19 @@ test('@claim:artwork-provenance generated map artwork has a shipped prompt and d
   expect(Object.keys(prompt).length).toBeGreaterThan(0);
 });
 
+test('@claim:node-version package metadata requires Node.js 20 or newer', async () => {
+  const packageJson = JSON.parse(await readFile('package.json', 'utf8')) as { engines?: { node?: string } };
+  expect(packageJson.engines?.node).toBe('>=20');
+  expect(Number(process.versions.node.split('.')[0])).toBeGreaterThanOrEqual(20);
+});
+
+test('@claim:build-output the production build contains every documented deploy artifact', async () => {
+  for (const path of ['dist/index.html', 'dist/404.html', 'dist/sw.js', 'dist/staticwebapp.config.json']) await access(path);
+  const assets = await readdir('dist/assets');
+  expect(assets.some((name) => /^main-.*\.js$/.test(name))).toBe(true);
+  expect(assets.some((name) => /\.css$/.test(name))).toBe(true);
+});
+
 test('@claim:privacy-local demo flow sends requests only to this site', async ({ page }) => {
   const origins = new Set<string>();
   page.on('request', (request) => origins.add(new URL(request.url()).origin));
@@ -257,7 +270,19 @@ test('routes set titles, focus headings, support back, and show a designed 404',
   await expect(page.getByRole('heading', { level: 1, name: 'Merge two bookmark exports' })).toBeFocused();
   await page.goto('/this-route-does-not-exist');
   await expect(page).toHaveTitle('Page not found — Bookmark Merge Map');
-  await expect(page.getByRole('heading', { level: 1, name: 'This page is not on the map' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible();
+});
+
+test('populated demo URLs are non-interactive and every remaining demo link resolves', async ({ page, request }) => {
+  await openDemo(page);
+  await expect(page.locator('.result-row .url')).toHaveCount(5);
+  await expect(page.locator('.result-row a.url')).toHaveCount(0);
+  const hrefs = await page.locator('a[href]').evaluateAll((links) => [...new Set(links.map((link) => (link as HTMLAnchorElement).href))]);
+  for (const href of hrefs) {
+    const response = await request.get(href);
+    expect(response.status(), `${href} should resolve`).toBeGreaterThanOrEqual(200);
+    expect(response.status(), `${href} should resolve`).toBeLessThan(400);
+  }
 });
 
 test('all product routes have metadata, one h1, a shared shell, and working internal links', async ({ page, request }) => {

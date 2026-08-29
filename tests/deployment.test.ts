@@ -54,7 +54,7 @@ describe('production response policy', () => {
   });
 
   it('advances the offline cache for this repaired release', () => {
-    expect(serviceWorker).toContain("const CACHE = 'bookmark-merge-map-v8'");
+    expect(serviceWorker).toContain("const CACHE = 'bookmark-merge-map-v9'");
   });
 
   it('rewrites every real route and uses a designed 404 response', () => {

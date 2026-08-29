@@ -5,7 +5,7 @@ import { clearProject, loadProject, saveProject, type StorageSpace } from './sto
 import type { ImportedMap, MergeRow, RowStatus, SavedProject, SourceId } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
-const BUILD = 'v1.2.0 · polish 2';
+const BUILD = 'v1.3.0 · polish 3';
 const ORIGIN = 'https://bookmark-merge-map.sociobot.in';
 type PageRoute = 'home' | 'demo' | 'privacy' | 'terms' | 'not-found';
 
@@ -126,7 +126,10 @@ function resultRow(row: MergeRow, index: number): string {
   const folders = uniqueValues(row.items.map((item) => item.folder), (folder) => folder.join('\u0000'));
   const statusLabels: Record<RowStatus, string> = { shared: 'Shared', 'a-only': 'Only in A', 'b-only': 'Only in B', conflict: 'Needs review' };
   const original = row.items[0];
-  return `<article class="result-row ${row.included ? '' : 'excluded'}" data-result-index="${index}"><label class="include-control"><input type="checkbox" data-action="include" ${row.included ? 'checked' : ''}><span class="visually-hidden">Include ${escapeHtml(row.title)}</span></label><div class="result-main"><div class="result-heading"><span class="status-mark status-${row.status}">${statusLabels[row.status]}</span><span class="inclusion-state">${row.included ? 'Included in export' : 'Excluded from export'}</span><span class="sources" aria-label="Found in export ${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join(' and ')}">${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join('+')}</span></div>${titles.length > 1 ? `<label class="choice-label">Export title<select data-action="title">${titles.map((title) => `<option ${title === row.title ? 'selected' : ''}>${escapeHtml(title)}</option>`).join('')}</select></label>` : `<h3>${escapeHtml(row.title)}</h3>`}${/^https?:/i.test(original.url) ? `<a class="url" href="${escapeHtml(original.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(original.url)}</a>` : `<span class="url">${escapeHtml(original.url)}</span>`}<div class="row-meta">${folders.length > 1 ? `<label class="choice-label">Destination<select data-action="folder">${folders.map((folder) => { const path = folder.join(' / ') || 'Bookmarks bar'; return `<option value="${escapeHtml(folder.join('\u0000'))}" ${folder.join('\u0000') === row.folder.join('\u0000') ? 'selected' : ''}>${escapeHtml(path)}</option>`; }).join('')}</select></label>` : `<span class="folder">⌁ ${escapeHtml(row.folder.join(' / ') || 'Bookmarks bar')}</span>`}${row.notes.map((note) => `<span class="note">${escapeHtml(note)}</span>`).join('')}</div></div></article>`;
+  const url = state.route !== 'demo' && /^https?:/i.test(original.url)
+    ? `<a class="url" href="${escapeHtml(original.url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(original.url)} (opens external site)">${escapeHtml(original.url)}<span class="visually-hidden"> (opens external site)</span></a>`
+    : `<span class="url">${escapeHtml(original.url)}</span>`;
+  return `<article class="result-row ${row.included ? '' : 'excluded'}" data-result-index="${index}"><label class="include-control"><input type="checkbox" data-action="include" ${row.included ? 'checked' : ''}><span class="visually-hidden">Include ${escapeHtml(row.title)}</span></label><div class="result-main"><div class="result-heading"><span class="status-mark status-${row.status}">${statusLabels[row.status]}</span><span class="inclusion-state">${row.included ? 'Included in export' : 'Excluded from export'}</span><span class="sources" aria-label="Found in export ${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join(' and ')}">${[...new Set(row.items.map((item) => item.source.toUpperCase()))].join('+')}</span></div>${titles.length > 1 ? `<label class="choice-label">Export title<select data-action="title">${titles.map((title) => `<option ${title === row.title ? 'selected' : ''}>${escapeHtml(title)}</option>`).join('')}</select></label>` : `<h3>${escapeHtml(row.title)}</h3>`}${url}<div class="row-meta">${folders.length > 1 ? `<label class="choice-label">Destination<select data-action="folder">${folders.map((folder) => { const path = folder.join(' / ') || 'Bookmarks bar'; return `<option value="${escapeHtml(folder.join('\u0000'))}" ${folder.join('\u0000') === row.folder.join('\u0000') ? 'selected' : ''}>${escapeHtml(path)}</option>`; }).join('')}</select></label>` : `<span class="folder">⌁ ${escapeHtml(row.folder.join(' / ') || 'Bookmarks bar')}</span>`}${row.notes.map((note) => `<span class="note">${escapeHtml(note)}</span>`).join('')}</div></div></article>`;
 }
 
 function demoPreview(): string {
@@ -174,7 +177,7 @@ function legalPage(kind: 'privacy' | 'terms'): string {
 
 function notFoundPage(): string {
   setHead('Page not found — Bookmark Merge Map', 'This Bookmark Merge Map page does not exist.', '/404');
-  return `${shellHeader()}<main id="main" class="not-found"><div class="contour-mark" aria-hidden="true">404</div><p class="section-kicker">PAGE NOT FOUND</p><h1 tabindex="-1">This page is not on the map</h1><p>Check the address or return to the bookmark merge tool.</p><a class="primary-button" href="/" data-nav>Return to Bookmark Merge Map</a></main>${shellFooter()}`;
+  return `${shellHeader()}<main id="main" class="not-found"><div class="contour-mark" aria-hidden="true">404</div><p class="section-kicker">PAGE NOT FOUND</p><h1 tabindex="-1">Page not found</h1><p>Check the address or return to the bookmark merge tool.</p><a class="primary-button" href="/" data-nav>Return to Bookmark Merge Map</a></main>${shellFooter()}`;
 }
 
 function render(focusHeading = false): void {

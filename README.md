@@ -43,7 +43,7 @@ The production build writes `dist/index.html`, route assets, the service worker,
 
 ## Deploy
 
-Deploy the contents of `dist/` as a static site. HTTPS is required for service-worker installation.
+Deploy the contents of `dist/` as a static site.
 
 The factory work order owns deployment. Do not change DNS, billing, or infrastructure from this repository.
 
